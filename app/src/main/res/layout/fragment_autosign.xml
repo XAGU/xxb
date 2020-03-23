@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorWhite">
+
+    <LinearLayout
+        android:id="@+id/ll_top_bar"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:background="@color/colorWhite"
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:layout_marginBottom="5dp"
+            android:gravity="bottom"
+            android:text="挂机签到"
+            android:textColor="@color/colorBlack"
+            android:textSize="18sp" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.1px"
+        android:layout_below="@+id/ll_top_bar"
+        android:background="@color/colorGrayHint" />
+
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:paddingTop="2dp"
+        android:paddingBottom="2dp"
+        android:background="@color/colorGrayBG"
+        android:id="@+id/rv_sign_course"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/sign_info"
+        android:layout_below="@id/ll_top_bar"
+        android:layout_marginBottom="20dp">
+
+
+    </androidx.recyclerview.widget.RecyclerView>
+
+
+
+
+    <LinearLayout
+        android:id="@+id/sign_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="20dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_sign_course_count"
+            android:layout_width="wrap_content"
+            android:text="共监控课程4门"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="10dp"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:id="@+id/tv_sign_log"
+            android:layout_width="wrap_content"
+            android:text="已运行检测0次，成功签到0次"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="10dp"
+            android:layout_height="wrap_content"/>
+        <LinearLayout
+            android:id="@+id/ll_sign_address"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_alignParentBottom="true"
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp">
+
+            <com.xagu.xxb.views.CircleImageView
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:layout_gravity="center"
+                android:scaleType="centerCrop"
+                android:src="@mipmap/auto_sign_location" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="start|center_vertical"
+                android:orientation="vertical"
+                android:paddingLeft="10dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="定位签到设置"
+                    android:textColor="@color/colorBlack"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="进行定位签到时提交的位置信息"
+                    android:textColor="@color/colorGrayA9"
+                    android:textSize="10sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tv_sign_address"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical|end"
+                android:text="武汉科技大学"
+                android:textColor="@color/colorPrimaryText" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/ll_sign_photo"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_alignParentBottom="true"
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp">
+
+            <com.xagu.xxb.views.CircleImageView
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:layout_gravity="center"
+                android:scaleType="centerCrop"
+                android:src="@mipmap/auto_sign_photo" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="start|center_vertical"
+                android:orientation="vertical"
+                android:paddingLeft="10dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="拍照签到设置"
+                    android:textColor="@color/colorBlack"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="进行图片签到时提交的图片信息"
+                    android:textColor="@color/colorGrayA9"
+                    android:textSize="10sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tv_sign_photo"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical|end"
+                android:text="已选择"
+                android:textColor="@color/colorPrimaryText" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/ll_sign_delay"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_alignParentBottom="true"
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp">
+
+            <com.xagu.xxb.views.CircleImageView
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:layout_gravity="center"
+                android:scaleType="centerCrop"
+                android:src="@mipmap/auto_sign_delay" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="start|center_vertical"
+                android:orientation="vertical"
+                android:paddingLeft="10dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="检测周期设置"
+                    android:textColor="@color/colorBlack"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="设置检测延迟"
+                    android:textColor="@color/colorGrayA9"
+                    android:textSize="10sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tv_sign_delay"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical|end"
+                android:text="3600s"
+                android:textColor="@color/colorPrimaryText" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btn_start_sign"
+            android:layout_width="200dp"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_btn"
+            android:clickable="true"
+            android:layout_gravity="center_horizontal"
+            android:focusable="true"
+            android:layout_marginTop="20dp"
+            android:text="开始"
+            android:textColor="@color/colorWhite" />
+    </LinearLayout>
+
+
+</RelativeLayout>

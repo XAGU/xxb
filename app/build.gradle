@@ -1,0 +1,86 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 29
+    buildToolsVersion "29.0.3"
+
+    defaultConfig {
+        applicationId "com.xagu.xxb"
+        minSdkVersion 22
+        targetSdkVersion 29
+        versionCode 1
+        versionName "1.0.3"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    buildscript {
+        repositories {
+            jcenter()
+            maven { url 'https://dl.bintray.com/umsdk/release' }
+        }
+    }
+    allprojects {
+        repositories {
+            jcenter()
+            maven { url 'https://dl.bintray.com/umsdk/release' }
+        }
+    }
+
+
+    compileOptions {
+
+        sourceCompatibility JavaVersion.VERSION_1_8
+
+        targetCompatibility JavaVersion.VERSION_1_8
+
+    }
+
+}
+
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+    implementation 'com.squareup.okhttp3:okhttp:3.10.0'
+    implementation 'com.github.bumptech.glide:glide:4.11.0'
+    implementation 'com.squareup.okio:okio:1.8.0'
+    //implementation 'com.github.hackware1993:MagicIndicator:1.5.0'
+    implementation 'androidx.recyclerview:recyclerview:1.2.0-alpha01'
+    implementation group: 'com.squareup.retrofit2', name: 'retrofit', version: '2.7.2'
+    // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.10.3'
+    implementation 'com.github.franmontiel:PersistentCookieJar:v1.0.1'
+    implementation 'com.flyco.tablayout:FlycoTabLayout_Lib:2.1.2@aar'
+    implementation 'jp.wasabeef:glide-transformations:4.1.0'
+    // https://mvnrepository.com/artifact/org.jsoup/jsoup
+    implementation group: 'org.jsoup', name: 'jsoup', version: '1.13.1'
+    implementation 'com.kyleduo.switchbutton:library:2.0.0'
+    implementation 'com.wangnan:gesturelockview:1.0.2'
+    //GD地图
+    implementation 'com.amap.api:map2d:latest.integration'
+    implementation 'com.amap.api:location:latest.integration'
+    implementation 'com.amap.api:search:latest.integration'
+    //相册图片加载
+    implementation 'com.github.LuckSiege.PictureSelector:picture_library:v2.4.9'
+
+    implementation('com.github.hotchemi:permissionsdispatcher:3.1.0')
+    annotationProcessor 'com.github.hotchemi:permissionsdispatcher-processor:3.1.0'
+
+    //下拉刷新
+    implementation 'com.lcodecorex:tkrefreshlayout:1.0.7'
+    //友盟
+    implementation 'com.umeng.umsdk:analytics:8.1.4'
+    implementation 'com.umeng.umsdk:common:2.1.8'
+}

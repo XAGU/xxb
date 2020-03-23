@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:background="@drawable/shape_course_bg"
+    android:layout_height="70dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.xagu.xxb.views.RoundRectImageView
+            android:scaleType="fitXY"
+            android:id="@+id/iv_active_cover"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="10dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_toRightOf="@+id/iv_active_cover"
+            android:orientation="vertical"
+            android:layout_centerVertical="true"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/tv_course_name"
+                android:maxLines="1"
+                android:layout_width="210dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:text="这里是课程名字"
+                android:textColor="@color/colorBlack" />
+
+            <TextView
+                android:id="@+id/tv_course_teacher"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:maxLines="1"
+                android:layout_marginTop="10dp"
+                android:text="这里是老师名字"
+                android:textColor="@color/colorGrayA9"
+                android:textSize="12dp" />
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="10dp"
+            android:src="@mipmap/course_back"
+            android:layout_alignParentEnd="true"/>
+    </RelativeLayout>
+</RelativeLayout>

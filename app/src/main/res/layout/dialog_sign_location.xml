@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/shape_sign_dialog_bg"
+    android:orientation="vertical"
+    android:paddingStart="10dp"
+    android:paddingEnd="10dp">
+
+    <RelativeLayout
+        android:id="@+id/sign_controller_container"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:orientation="horizontal">
+
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@mipmap/sign_dialog_type" />
+
+            <TextView
+                android:id="@+id/tv_sign_type"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:text="签到类型"
+                android:textColor="@color/colorGrayA9"
+                android:textSize="16sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="10dp"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@mipmap/sign_dialog_time" />
+
+            <TextView
+                android:id="@+id/tv_sign_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:text="剩余时间"
+                android:textColor="@color/colorGrayA9"
+                android:textSize="16sp" />
+        </LinearLayout>
+    </RelativeLayout>
+
+    <com.amap.api.maps2d.MapView
+        android:id="@+id/gd_map"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:layout_below="@+id/sign_controller_container" />
+
+    <LinearLayout
+        android:id="@+id/ll_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/gd_map">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="center_vertical"
+            android:padding="2dp"
+            android:src="@mipmap/sign_dialog_name" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="显示名字:"
+            android:textColor="@color/colorBlack" />
+
+        <EditText
+            android:id="@+id/et_sign_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:hint="教师端将显示该名字"
+            android:inputType="text"
+            android:maxLines="1"
+            android:paddingStart="6dp"
+            android:paddingEnd="30dp"
+            android:textColorHint="@color/colorGrayHint"
+            android:textSize="16sp"
+            android:theme="@style/MyEditText" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/ll_address"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/ll_name">
+
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="center_vertical"
+            android:padding="3dp"
+            android:src="@mipmap/sign_dialog_address" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="显示地址:"
+            android:textColor="@color/colorBlack" />
+
+        <EditText
+            android:id="@+id/et_sign_address"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:focusable="false"
+            android:hint="教师端将显示此地址"
+            android:inputType="number"
+            android:maxLines="1"
+            android:paddingStart="6dp"
+            android:paddingEnd="30dp"
+            android:textColorHint="@color/colorGrayHint"
+            android:textSize="16sp"
+            android:theme="@style/MyEditText" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/ll_sign_lng"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/ll_address">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="center_vertical"
+            android:padding="2dp"
+            android:src="@mipmap/sign_dialog_lng" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="定位经度:"
+            android:textColor="@color/colorBlack" />
+
+        <EditText
+            android:id="@+id/et_sign_lng"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:focusable="false"
+            android:hint="自定义定位的经度"
+            android:inputType="number"
+            android:maxLines="1"
+            android:paddingStart="6dp"
+            android:paddingEnd="30dp"
+            android:textColorHint="@color/colorGrayHint"
+            android:textSize="16sp"
+            android:theme="@style/MyEditText" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/ll_sign_lat"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/ll_sign_lng">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="center_vertical"
+            android:padding="2dp"
+            android:src="@mipmap/sign_dialog_lat" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="定位纬度:"
+            android:textColor="@color/colorBlack" />
+
+        <EditText
+            android:id="@+id/et_sign_lat"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:focusable="false"
+            android:hint="自定义定位的纬度"
+            android:inputType="number"
+            android:maxLines="1"
+            android:paddingStart="6dp"
+            android:paddingEnd="30dp"
+            android:textColorHint="@color/colorGrayHint"
+            android:textSize="16sp"
+            android:theme="@style/MyEditText" />
+    </LinearLayout>
+
+
+    <TextView
+        android:id="@+id/tv_sign"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/ll_sign_lat"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:gravity="center"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:text="签到"
+        android:textColor="@color/colorPrimaryText"
+        android:textSize="18sp" />
+
+</RelativeLayout>

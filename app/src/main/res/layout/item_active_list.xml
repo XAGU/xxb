@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:background="@color/colorWhite"
+    android:layout_height="70dp">
+
+        <com.xagu.xxb.views.RoundRectImageView
+            android:id="@+id/iv_active_cover"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@mipmap/tab_autosign"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="10dp"
+            android:scaleType="fitXY" />
+
+
+        <TextView
+            android:id="@+id/tv_active_name"
+            android:layout_width="210dp"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="15dp"
+            android:layout_toEndOf="@+id/iv_active_cover"
+            android:layout_marginTop="-10dp"
+            android:maxLines="1"
+            android:text="手势签到"
+            android:textColor="@color/colorBlack" />
+
+
+    <TextView
+        android:id="@+id/tv_active_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="2020-02-22"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="15dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="10dp"
+        android:textSize="12sp"/>
+</RelativeLayout>
