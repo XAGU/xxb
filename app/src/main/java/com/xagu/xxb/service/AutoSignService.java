@@ -1,15 +1,26 @@
-package com.xagu.xxb.presenter;
+package com.xagu.xxb.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.Service;
+import android.content.Intent;
+import android.graphics.BitmapFactory;
+import android.os.IBinder;
+
+import androidx.annotation.Nullable;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.umeng.analytics.MobclickAgent;
+import com.xagu.xxb.MainActivity;
+import com.xagu.xxb.R;
 import com.xagu.xxb.base.BaseApplication;
 import com.xagu.xxb.bean.Active;
 import com.xagu.xxb.bean.Course;
 import com.xagu.xxb.data.XxbApi;
-import com.xagu.xxb.interfaces.IAutoSignCallback;
-import com.xagu.xxb.interfaces.IAutoSignPresenter;
 import com.xagu.xxb.utils.Constants;
 import com.xagu.xxb.utils.RetrofitManager;
 import com.xagu.xxb.utils.SPUtil;
@@ -20,7 +31,6 @@ import org.jsoup.nodes.Document;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -28,109 +38,34 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 
 /**
- * Created by XAGU on 2020/3/13
+ * Created by XAGU on 2020/3/23
  * Email:xagu_qc@foxmail.com
  * Describe: TODO
  */
-public class AutoSignPresenter implements IAutoSignPresenter {
+public class AutoSignService extends Service {
 
-    private volatile static AutoSignPresenter sInstance = null;
-    List<IAutoSignCallback> mCallbacks = new ArrayList<>();
-    private final XxbApi mXxbApi;
     private List<Course> mCourses;
-    public boolean isRun = false;
+    private XxbApi mXxbApi;
+    private boolean mIsRun = false;
+    private Thread mThread;
+    private LocalBroadcastManager mManager;
     int count = 0;
     int signSuccess = 0;
 
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
 
-    private AutoSignPresenter() {
+    @Override
+    public void onCreate() {
+        setForegroundNotification();
+        mManager = LocalBroadcastManager.getInstance(getApplicationContext());
         Retrofit retrofit = RetrofitManager.getInstance().getRetrofit();
         mXxbApi = retrofit.create(XxbApi.class);
-    }
-
-    public static AutoSignPresenter getInstance() {
-        if (sInstance == null) {
-            synchronized (AutoSignPresenter.class) {
-                if (sInstance == null) {
-                    sInstance = new AutoSignPresenter();
-                }
-            }
-        }
-        return sInstance;
-    }
-
-
-    @Override
-    public void registerViewCallback(IAutoSignCallback iAutoSignCallback) {
-        if (!mCallbacks.contains(iAutoSignCallback)) {
-            mCallbacks.add(iAutoSignCallback);
-        }
-    }
-
-    @Override
-    public void unRegisterViewCallback(IAutoSignCallback iAutoSignCallback) {
-        mCallbacks.remove(iAutoSignCallback);
-    }
-
-    public void deleteSubSign(Course course) {
-        if (mCourses.contains(course)) {
-            mCourses.remove(course);
-
-            for (IAutoSignCallback callback : mCallbacks) {
-                if (mCourses.size() != 0) {
-                    callback.onGetAutoSignCourseSuccess(mCourses);
-                } else {
-                    callback.onGetAutoSignCourseEmpty();
-                }
-            }
-
-        }
-    }
-
-    public void addSubSign(Course course) {
-        if (!mCourses.contains(course)) {
-            mCourses.add(course);
-            for (IAutoSignCallback callback : mCallbacks) {
-                callback.onGetAutoSignCourseSuccess(mCourses);
-            }
-        }
-    }
-
-    @Override
-    public void getAutoSignCourse() {
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            Map<String, ?> courseMap = SPUtil.getAll(Constants.SP_SUB_SIGN);
-            mCourses = new ArrayList<>();
-            for (Map.Entry<String, ?> entry : courseMap.entrySet()) {
-                Course course = objectMapper.readValue((String) entry.getValue(), Course.class);
-                mCourses.add(course);
-            }
-            for (IAutoSignCallback callback : mCallbacks) {
-                if (mCourses.size() == 0) {
-                    callback.onGetAutoSignCourseEmpty();
-                } else {
-                    callback.onGetAutoSignCourseSuccess(mCourses);
-                }
-            }
-        } catch (JsonProcessingException e) {
-            for (IAutoSignCallback callback : mCallbacks) {
-                callback.onGetAutoSignCourseEmpty();
-            }
-            e.printStackTrace();
-            MobclickAgent.reportError(BaseApplication.getAppContext(), e);
-        }
-    }
-
-    public void stopSign() {
-        isRun = false;
-    }
-
-    @Override
-    public void autoSign(List<Course> course) {
-        isRun = true;
         //获取活动
-        new Thread(new Runnable() {
+        mThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 String address = (String) SPUtil.get(Constants.SP_CONFIG_SIGN_ADDRESS, "", Constants.SP_CONFIG);
@@ -139,8 +74,8 @@ public class AutoSignPresenter implements IAutoSignPresenter {
                 String name = (String) SPUtil.get(Constants.SP_CONFIG_SIGN_NAME, "", Constants.SP_CONFIG);
                 String photo = (String) SPUtil.get(Constants.SP_CONFIG_SIGN_PHOTO, "", Constants.SP_CONFIG);
                 String delay = (String) SPUtil.get(Constants.SP_CONFIG_SIGN_DELAY, "0", Constants.SP_CONFIG);
-                while (isRun) {
-                    for (Course course1 : course) {
+                while (mIsRun) {
+                    for (Course course1 : mCourses) {
                         List<Active> actives = getActiveInfo(course1);
                         if (actives == null || actives.size() == 0) {
                             continue;
@@ -149,36 +84,77 @@ public class AutoSignPresenter implements IAutoSignPresenter {
                             if (requestActiveSignStatus(active)) {
                                 //没签到的
                                 if (sign(address, name, lng, lat, course1.getUid(), active.getId(), photo)) {
-                                    //成功签到，通知ui
-                                    for (IAutoSignCallback callback : mCallbacks) {
-                                        BaseApplication.getsHandler().post(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                callback.signLog(count, ++signSuccess);
-                                            }
-                                        });
-                                    }
+                                    //成功签到，通知ui,发送广播
+                                    Intent intent = new Intent("autoSign");
+                                    intent.putExtra("signCount", count);
+                                    intent.putExtra("signSuccess", ++signSuccess);
+                                    mManager.sendBroadcast(intent);
                                 }
                             }
                         }
                     }
-                    for (IAutoSignCallback callback : mCallbacks) {
-                        BaseApplication.getsHandler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                callback.signLog(++count, signSuccess);
-                            }
-                        });
-                    }
+                    //通知ui增加次数
+                    Intent intent = new Intent("autoSign");
+                    intent.putExtra("signCount", ++count);
+                    intent.putExtra("signSuccess", signSuccess);
+                    mManager.sendBroadcast(intent);
                     try {
+                        System.out.println("签到中");
                         Thread.sleep(Integer.parseInt(delay));
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
             }
-        }).start();
+        });
+        super.onCreate();
     }
+
+    @Override
+    public void onDestroy() {
+        mIsRun = false;
+        super.onDestroy();
+    }
+
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        mIsRun = true;
+        mCourses = (List<Course>) intent.getSerializableExtra("courses");
+        if (mCourses != null) {
+            mThread.start();
+        }
+        return super.onStartCommand(intent, flags, startId);
+    }
+
+    private void setForegroundNotification() {
+        // 在API11之后构建Notification的方式
+        Notification.Builder builder = new Notification.Builder(this.getApplicationContext()); //获取一个Notification构造器
+        //Intent nfIntent = new Intent(this, MainActivity.class);
+        //nfIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        builder.setLargeIcon(BitmapFactory.decodeResource(this.getResources(),
+                        R.mipmap.ic_launcher))// 设置下拉列表中的图标(大图标)
+                .setContentTitle("学习崩") // 设置下拉列表里的标题
+                .setSmallIcon(R.mipmap.ic_launcher) // 设置状态栏内的小图标
+                .setContentText("正在监控中！！！！") // 设置上下文内容
+                .setWhen(System.currentTimeMillis()); // 设置该通知发生的时间
+        Notification notification = builder.build(); // 获取构建好的Notification
+        //notification.defaults = Notification.DEFAULT_SOUND; //设置为默认的声音
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            //修改安卓8.1以上系统报错
+            String CHANNEL_ONE_ID = "com.xagu.xxb";
+            String CHANNEL_ONE_NAME = "Channel One";
+            NotificationChannel notificationChannel = new NotificationChannel(CHANNEL_ONE_ID, CHANNEL_ONE_NAME, NotificationManager.IMPORTANCE_MIN);
+            notificationChannel.enableLights(false);//如果使用中的设备支持通知灯，则说明此通知通道是否应显示灯
+            notificationChannel.setShowBadge(false);//是否显示角标
+            notificationChannel.setLockscreenVisibility(Notification.VISIBILITY_SECRET);
+            NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            manager.createNotificationChannel(notificationChannel);
+            builder.setChannelId(CHANNEL_ONE_ID);
+        }
+        startForeground(1, notification);
+    }
+
 
     public boolean sign(String address, String name, String lng, String lat, String uid, String activeId, String objectId) {
         Call<ResponseBody> task = mXxbApi.sign(address, name, lng, lat, uid, activeId, objectId);

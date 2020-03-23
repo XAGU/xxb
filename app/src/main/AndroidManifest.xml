@@ -15,6 +15,8 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <!--android 9.0上使用前台服务，需要添加权限-->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
         android:name=".base.BaseApplication"
@@ -29,6 +31,7 @@
         <meta-data
             android:name="com.amap.api.v2.apikey"
             android:value="0b2cb2df327eb65a4ee5ca175ef544b7"/>
+        <service android:name=".service.AutoSignService"/>
         <activity android:name=".CourseDetailActivity" />
         <activity android:name=".MainActivity">
             <intent-filter>

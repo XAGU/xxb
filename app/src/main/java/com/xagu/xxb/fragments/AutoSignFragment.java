@@ -1,8 +1,14 @@
 package com.xagu.xxb.fragments;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Rect;
+import android.os.Build;
+import android.os.Handler;
+import android.os.Message;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -14,6 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -25,6 +32,7 @@ import com.xagu.xxb.bean.Course;
 import com.xagu.xxb.interfaces.IAutoSignCallback;
 import com.xagu.xxb.presenter.ActivePresenter;
 import com.xagu.xxb.presenter.AutoSignPresenter;
+import com.xagu.xxb.service.AutoSignService;
 import com.xagu.xxb.utils.Constants;
 import com.xagu.xxb.utils.SPUtil;
 import com.xagu.xxb.utils.UIUtil;
@@ -33,6 +41,8 @@ import com.xagu.xxb.views.SignDelayTimeWindow;
 import com.xagu.xxb.views.SignPhotoWindow;
 import com.xagu.xxb.views.UILoader;
 
+import java.io.Serializable;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,7 +61,6 @@ public class AutoSignFragment extends BaseFragment implements IAutoSignCallback 
 
     private View mView;
     private RecyclerView mRvSignCourse;
-    private AutoSignPresenter mAutoSignPresenter;
     private CourseListAdapter mCourseListAdapter;
     private UILoader mUiLoader;
     private TextView mTvSignCourseCount;
@@ -71,6 +80,8 @@ public class AutoSignFragment extends BaseFragment implements IAutoSignCallback 
     private String mPhoto;
     private String mDelay;
     private List<Course> mCourse = new ArrayList<>();
+    private LocalBroadcastManager mManager;
+    private AutoSignPresenter mAutoSignPresenter;
 
     @Override
     protected View onSubViewLoaded(LayoutInflater layoutInflater, ViewGroup container) {
@@ -95,8 +106,35 @@ public class AutoSignFragment extends BaseFragment implements IAutoSignCallback 
         initView();
         initEvent();
         initPresenter();
+        initAutoSignService();
         return mUiLoader;
     }
+
+    private void initPresenter() {
+        mAutoSignPresenter = AutoSignPresenter.getInstance();
+        mAutoSignPresenter.registerViewCallback(this);
+        mUiLoader.updateStatus(UILoader.UIStatus.LOADING);
+        mAutoSignPresenter.getAutoSignCourse();
+    }
+
+    private void initAutoSignService() {
+        //获取局部广播管理员
+        mManager = LocalBroadcastManager.getInstance(getActivity());
+        //注册局部广播
+        IntentFilter filter = new IntentFilter("autoSign");
+        mManager.registerReceiver(receiver, filter);
+    }
+
+    //广播接受者
+    private BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            //获取广播消息
+            int signCount = intent.getIntExtra("signCount", 0);
+            int signSuccess = intent.getIntExtra("signSuccess", 0);
+            mTvSignLog.setText("已运行检测" + signCount + "次，成功签到" + signSuccess + "次");
+        }
+    };
 
     private void initView() {
         mTvSignCourseCount = mView.findViewById(R.id.tv_sign_course_count);
@@ -140,12 +178,6 @@ public class AutoSignFragment extends BaseFragment implements IAutoSignCallback 
         return mView;
     }
 
-    private void initPresenter() {
-        mAutoSignPresenter = AutoSignPresenter.getInstance();
-        mAutoSignPresenter.registerViewCallback(this);
-        mUiLoader.updateStatus(UILoader.UIStatus.LOADING);
-        mAutoSignPresenter.getAutoSignCourse();
-    }
 
     @Override
     public void onDestroy() {
@@ -153,6 +185,7 @@ public class AutoSignFragment extends BaseFragment implements IAutoSignCallback 
         if (mAutoSignPresenter != null) {
             mAutoSignPresenter.unRegisterViewCallback(this);
         }
+        mManager.unregisterReceiver(receiver);
     }
 
     private void initEvent() {
@@ -211,22 +244,38 @@ public class AutoSignFragment extends BaseFragment implements IAutoSignCallback 
             }
         });
 
+
         //开始签到
         mBtnSign.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mAutoSignPresenter.isRun) {
-                    mAutoSignPresenter.stopSign();
+                if (isRun) {
+                    //mAutoSignPresenter.stopSign();
+                    if (getActivity() != null) {
+                        Intent service = new Intent(getActivity(), AutoSignService.class);
+                        getActivity().stopService(service);
+                    }
                     mBtnSign.setText("开始");
                     mBtnSign.setBackground(getActivity().getDrawable(R.drawable.bg_btn));
                 } else {
-                    mAutoSignPresenter.autoSign(mCourse);
+                    if (getActivity() != null) {
+                        Intent service = new Intent(getActivity(), AutoSignService.class);
+                        service.putExtra("courses", (Serializable) mCourse);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            getActivity().startForegroundService(service);
+                        } else {
+                            getActivity().startService(service);
+                        }
+                    }
+                    //mAutoSignPresenter.autoSign(mCourse);
                     mBtnSign.setText("停止监控");
                     mBtnSign.setBackground(getActivity().getDrawable(R.drawable.bg_btn_red));
                 }
+                isRun = !isRun;
             }
         });
     }
+    boolean isRun = false;
 
     @NeedsPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
     public void showAddressWindow() {
