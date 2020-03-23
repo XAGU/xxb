@@ -143,7 +143,7 @@ public class AutoSignPresenter implements IAutoSignPresenter {
                 while (isRun) {
                     for (Course course1 : course) {
                         List<Active> actives = getActiveInfo(course1);
-                        if (actives == null) {
+                        if (actives == null || actives.size() == 0) {
                             continue;
                         }
                         for (Active active : actives) {
@@ -167,7 +167,7 @@ public class AutoSignPresenter implements IAutoSignPresenter {
                         BaseApplication.getsHandler().post(new Runnable() {
                             @Override
                             public void run() {
-                                callback.signLog(++count,signSuccess);
+                                callback.signLog(++count, signSuccess);
                             }
                         });
                     }
