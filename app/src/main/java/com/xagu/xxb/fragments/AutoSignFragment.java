@@ -1,14 +1,13 @@
 package com.xagu.xxb.fragments;
 
 import android.Manifest;
-import android.content.BroadcastReceiver;
-import android.content.Context;
+import android.app.Activity;
+import android.app.Service;
+import android.content.ComponentName;
 import android.content.Intent;
-import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.graphics.Rect;
-import android.os.Build;
-import android.os.Handler;
-import android.os.Message;
+import android.os.IBinder;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -20,7 +19,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -41,9 +39,6 @@ import com.xagu.xxb.views.SignDelayTimeWindow;
 import com.xagu.xxb.views.SignPhotoWindow;
 import com.xagu.xxb.views.UILoader;
 
-import java.io.Serializable;
-import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.List;
 
 import permissions.dispatcher.NeedsPermission;
@@ -57,7 +52,7 @@ import permissions.dispatcher.RuntimePermissions;
  * Describe: TODO
  */
 @RuntimePermissions
-public class AutoSignFragment extends BaseFragment implements IAutoSignCallback {
+public class AutoSignFragment extends BaseFragment implements IAutoSignCallback, AutoSignService.AutoSignCallback {
 
     private View mView;
     private RecyclerView mRvSignCourse;
@@ -79,14 +74,20 @@ public class AutoSignFragment extends BaseFragment implements IAutoSignCallback 
     private String mAddress;
     private String mPhoto;
     private String mDelay;
-    private List<Course> mCourse = new ArrayList<>();
-    private LocalBroadcastManager mManager;
+    private List<Course> mCourse;
     private AutoSignPresenter mAutoSignPresenter;
+
+    private ServiceConnection mConn;
+    private AutoSignService mAutoSignService;
+    private Activity mActivity;
 
     @Override
     protected View onSubViewLoaded(LayoutInflater layoutInflater, ViewGroup container) {
         if (mUiLoader == null) {
-            mUiLoader = new UILoader(getActivity()) {
+            if (getActivity() != null) {
+                mActivity = getActivity();
+            }
+            mUiLoader = new UILoader(mActivity) {
                 @Override
                 protected View getSuccessView(ViewGroup container) {
                     return CreateSuccessView(layoutInflater, container);
@@ -110,31 +111,35 @@ public class AutoSignFragment extends BaseFragment implements IAutoSignCallback 
         return mUiLoader;
     }
 
+
+    private void initAutoSignService() {
+        mConn = new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder binder) {
+                AutoSignService.MyBinder myBinder = (AutoSignService.MyBinder) binder;
+                mAutoSignService = myBinder.getService();
+                mAutoSignService.setAutoSignCallback(AutoSignFragment.this);
+                mAutoSignService.setCourseData(mCourse);
+                mAutoSignService.startAutoSign();
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+                if (mAutoSignService != null) {
+                    mAutoSignService.stopAutoSign();
+                    mAutoSignService = null;
+                }
+            }
+        };
+    }
+
+
     private void initPresenter() {
         mAutoSignPresenter = AutoSignPresenter.getInstance();
         mAutoSignPresenter.registerViewCallback(this);
         mUiLoader.updateStatus(UILoader.UIStatus.LOADING);
         mAutoSignPresenter.getAutoSignCourse();
     }
-
-    private void initAutoSignService() {
-        //获取局部广播管理员
-        mManager = LocalBroadcastManager.getInstance(getActivity());
-        //注册局部广播
-        IntentFilter filter = new IntentFilter("autoSign");
-        mManager.registerReceiver(receiver, filter);
-    }
-
-    //广播接受者
-    private BroadcastReceiver receiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            //获取广播消息
-            int signCount = intent.getIntExtra("signCount", 0);
-            int signSuccess = intent.getIntExtra("signSuccess", 0);
-            mTvSignLog.setText("已运行检测" + signCount + "次，成功签到" + signSuccess + "次");
-        }
-    };
 
     private void initView() {
         mTvSignCourseCount = mView.findViewById(R.id.tv_sign_course_count);
@@ -162,7 +167,7 @@ public class AutoSignFragment extends BaseFragment implements IAutoSignCallback 
     private View CreateSuccessView(LayoutInflater layoutInflater, ViewGroup container) {
         mView = layoutInflater.inflate(R.layout.fragment_autosign, container, false);
         mRvSignCourse = mView.findViewById(R.id.rv_sign_course);
-        mRvSignCourse.setLayoutManager(new LinearLayoutManager(getActivity()));
+        mRvSignCourse.setLayoutManager(new LinearLayoutManager(mActivity));
         mRvSignCourse.addItemDecoration(new RecyclerView.ItemDecoration() {
             @Override
             public void getItemOffsets(@NonNull Rect outRect, @NonNull View view, @NonNull RecyclerView parent, @NonNull RecyclerView.State state) {
@@ -185,7 +190,9 @@ public class AutoSignFragment extends BaseFragment implements IAutoSignCallback 
         if (mAutoSignPresenter != null) {
             mAutoSignPresenter.unRegisterViewCallback(this);
         }
-        mManager.unregisterReceiver(receiver);
+        if (mAutoSignService != null) {
+            mActivity.unbindService(mConn);
+        }
     }
 
     private void initEvent() {
@@ -193,7 +200,7 @@ public class AutoSignFragment extends BaseFragment implements IAutoSignCallback 
             @Override
             public void onClick(int position, Course course) {
                 ActivePresenter.getInstance().setTargetCourse(course);
-                startActivity(new Intent(getActivity(), CourseDetailActivity.class));
+                startActivity(new Intent(mActivity, CourseDetailActivity.class));
             }
         });
 
@@ -208,10 +215,10 @@ public class AutoSignFragment extends BaseFragment implements IAutoSignCallback 
             @Override
             public void onClick(View v) {
                 if (mSignPhotoWindow == null) {
-                    mSignPhotoWindow = new SignPhotoWindow(getActivity());
+                    mSignPhotoWindow = new SignPhotoWindow(mActivity);
                 }
                 //展示播放列表
-                mSignPhotoWindow.showAtLocation(getActivity().getWindow().getDecorView(), Gravity.BOTTOM, 0, 0);
+                mSignPhotoWindow.showAtLocation(mActivity.getWindow().getDecorView(), Gravity.BOTTOM, 0, 0);
                 mSignPhotoWindow.setAutoSignOption(mUid);
                 mSignPhotoWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
                     @Override
@@ -229,10 +236,10 @@ public class AutoSignFragment extends BaseFragment implements IAutoSignCallback 
             @Override
             public void onClick(View v) {
                 if (mSignDelayWindow == null) {
-                    mSignDelayWindow = new SignDelayTimeWindow(getActivity());
+                    mSignDelayWindow = new SignDelayTimeWindow(mActivity);
                 }
                 //展示播放列表
-                mSignDelayWindow.showAtLocation(getActivity().getWindow().getDecorView(), Gravity.BOTTOM, 0, 0);
+                mSignDelayWindow.showAtLocation(mActivity.getWindow().getDecorView(), Gravity.BOTTOM, 0, 0);
                 mSignDelayWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
                     @Override
                     public void onDismiss() {
@@ -249,51 +256,50 @@ public class AutoSignFragment extends BaseFragment implements IAutoSignCallback 
         mBtnSign.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isRun) {
-                    //mAutoSignPresenter.stopSign();
-                    if (getActivity() != null) {
-                        Intent service = new Intent(getActivity(), AutoSignService.class);
-                        getActivity().stopService(service);
-                    }
-                    mBtnSign.setText("开始");
-                    mBtnSign.setBackground(getActivity().getDrawable(R.drawable.bg_btn));
+                if (mAutoSignService == null || !mAutoSignService.isRun()) {
+                    //没有运行，点击开始运行
+                    Intent service = new Intent(mActivity, AutoSignService.class);
+                    mActivity.bindService(service, mConn, Service.BIND_AUTO_CREATE);
                 } else {
-                    if (getActivity() != null) {
-                        Intent service = new Intent(getActivity(), AutoSignService.class);
-                        service.putExtra("courses", (Serializable) mCourse);
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            getActivity().startForegroundService(service);
-                        } else {
-                            getActivity().startService(service);
-                        }
-                    }
-                    //mAutoSignPresenter.autoSign(mCourse);
-                    mBtnSign.setText("停止监控");
-                    mBtnSign.setBackground(getActivity().getDrawable(R.drawable.bg_btn_red));
+                    mAutoSignService.stopAutoSign();
+                    mActivity.unbindService(mConn);
                 }
-                isRun = !isRun;
             }
         });
     }
-    boolean isRun = false;
+
 
     @NeedsPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
     public void showAddressWindow() {
         if (mSignAddressWindow == null) {
-            mSignAddressWindow = new SignAddressWindow(getActivity());
+            mSignAddressWindow = new SignAddressWindow(mActivity);
         }
-        mSignAddressWindow.showAtLocation(getActivity().getWindow().getDecorView(), Gravity.BOTTOM, 0, 0);
+        mSignAddressWindow.showAtLocation(mActivity.getWindow().getDecorView(), Gravity.BOTTOM, 0, 0);
         mSignAddressWindow.setAutoSignOption();
         mSignAddressWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
             @Override
             public void onDismiss() {
                 String address = (String) SPUtil.get(Constants.SP_CONFIG_SIGN_ADDRESS, "", Constants.SP_CONFIG);
                 mTvSignAddress.setText(address);
-
             }
         });
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mAutoSignService != null) {
+            mAutoSignService.setAutoSignCallback(this);
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mAutoSignService != null) {
+            mAutoSignService.removeAutoSignCallback();
+        }
+    }
 
     @Override
     public void onGetAutoSignCourseEmpty() {
@@ -302,9 +308,11 @@ public class AutoSignFragment extends BaseFragment implements IAutoSignCallback 
 
     @Override
     public void onGetAutoSignCourseSuccess(List<Course> courses) {
-        mCourse.addAll(courses);
+        mCourse = courses;
         if (mCourseListAdapter != null) {
-            this.mUid = courses.get(0).getUid();
+            if (mUid == null) {
+                this.mUid = courses.get(0).getUid();
+            }
             mCourseListAdapter.setData(courses);
             mTvSignCourseCount.setText("共监控课程" + courses.size() + "门");
             mUiLoader.updateStatus(UILoader.UIStatus.SUCCESS);
@@ -319,17 +327,52 @@ public class AutoSignFragment extends BaseFragment implements IAutoSignCallback 
 
     @OnPermissionDenied(Manifest.permission.ACCESS_COARSE_LOCATION)
     void showDeniedForCamera() {
-        Toast.makeText(getActivity(), "请授予定位权限！", Toast.LENGTH_SHORT).show();
+        Toast.makeText(mActivity, "请授予定位权限！", Toast.LENGTH_SHORT).show();
     }
 
     @OnNeverAskAgain(Manifest.permission.ACCESS_COARSE_LOCATION)
     void showNeverAskForCamera() {
-        Toast.makeText(getActivity(), "请进入设置开启定位权限~~", Toast.LENGTH_SHORT).show();
+        Toast.makeText(mActivity, "请进入设置开启定位权限~~", Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         AutoSignFragmentPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
+    }
+
+    /**
+     * 开启服务成功
+     */
+    @Override
+    public void onStartAutoSign() {
+        mBtnSign.setText("停止监控");
+        mBtnSign.setBackground(mActivity.getDrawable(R.drawable.bg_btn_red));
+    }
+
+    /**
+     * 停止服务成功
+     */
+    @Override
+    public void onStopAutoSign() {
+        mBtnSign.setText("开始");
+        mBtnSign.setBackground(mActivity.getDrawable(R.drawable.bg_btn));
+    }
+
+    /**
+     * 日志
+     *
+     * @param sign
+     * @param signSuccess
+     */
+    @Override
+    public void onSignLog(int sign, int signSuccess) {
+        System.out.println("更新UI");
+        mActivity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mTvSignLog.setText("已运行检测" + sign + "次，成功签到" + signSuccess + "次");
+            }
+        });
     }
 }

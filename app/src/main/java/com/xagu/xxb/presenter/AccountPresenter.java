@@ -132,7 +132,7 @@ public class AccountPresenter implements IAccountPresenter {
         } else {
             user.setEmail("");
         }
-        if (cx_fanya.has("msg")) {
+        if (readTree.has("msg")) {
             JsonNode msg = readTree.get("msg");
             if (msg.has("pic")){
                 user.setHeadPic(msg.get("pic").asText());

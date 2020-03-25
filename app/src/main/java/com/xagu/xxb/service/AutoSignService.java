@@ -5,19 +5,22 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.net.Uri;
+import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
 
 import androidx.annotation.Nullable;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.core.app.NotificationCompat;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.umeng.analytics.MobclickAgent;
 import com.xagu.xxb.MainActivity;
 import com.xagu.xxb.R;
-import com.xagu.xxb.base.BaseApplication;
 import com.xagu.xxb.bean.Active;
 import com.xagu.xxb.bean.Course;
 import com.xagu.xxb.data.XxbApi;
@@ -28,9 +31,11 @@ import com.xagu.xxb.utils.SPUtil;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -47,30 +52,36 @@ public class AutoSignService extends Service {
     private List<Course> mCourses;
     private XxbApi mXxbApi;
     private boolean mIsRun = false;
-    private Thread mThread;
-    private LocalBroadcastManager mManager;
     int count = 0;
     int signSuccess = 0;
+    private AutoSignCallback mCallback;
+    private Runnable mRunnable;
 
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return new MyBinder();
     }
+
+    public class MyBinder extends Binder {
+        public AutoSignService getService() {
+            return AutoSignService.this;
+        }
+    }
+
 
     @Override
     public void onCreate() {
         setForegroundNotification();
-        mManager = LocalBroadcastManager.getInstance(getApplicationContext());
         Retrofit retrofit = RetrofitManager.getInstance().getRetrofit();
         mXxbApi = retrofit.create(XxbApi.class);
         //获取活动
-        mThread = new Thread(new Runnable() {
+        mRunnable = new Runnable() {
             @Override
             public void run() {
                 String address = (String) SPUtil.get(Constants.SP_CONFIG_SIGN_ADDRESS, "", Constants.SP_CONFIG);
-                String lng = (String) SPUtil.get(Constants.SP_CONFIG_SIGN_LNG, "", Constants.SP_CONFIG);
-                String lat = (String) SPUtil.get(Constants.SP_CONFIG_SIGN_LAT, "", Constants.SP_CONFIG);
+                String lng = (String) SPUtil.get(Constants.SP_CONFIG_SIGN_LNG, "-1", Constants.SP_CONFIG);
+                String lat = (String) SPUtil.get(Constants.SP_CONFIG_SIGN_LAT, "-1", Constants.SP_CONFIG);
                 String name = (String) SPUtil.get(Constants.SP_CONFIG_SIGN_NAME, "", Constants.SP_CONFIG);
                 String photo = (String) SPUtil.get(Constants.SP_CONFIG_SIGN_PHOTO, "", Constants.SP_CONFIG);
                 String delay = (String) SPUtil.get(Constants.SP_CONFIG_SIGN_DELAY, "0", Constants.SP_CONFIG);
@@ -78,6 +89,7 @@ public class AutoSignService extends Service {
                     for (Course course1 : mCourses) {
                         List<Active> actives = getActiveInfo(course1);
                         if (actives == null || actives.size() == 0) {
+                            //没有任务
                             continue;
                         }
                         for (Active active : actives) {
@@ -85,28 +97,28 @@ public class AutoSignService extends Service {
                                 //没签到的
                                 if (sign(address, name, lng, lat, course1.getUid(), active.getId(), photo)) {
                                     //成功签到，通知ui,发送广播
-                                    Intent intent = new Intent("autoSign");
-                                    intent.putExtra("signCount", count);
-                                    intent.putExtra("signSuccess", ++signSuccess);
-                                    mManager.sendBroadcast(intent);
+                                    ++signSuccess;
+                                    sendNotification(course1.getName());
+                                    if (mCallback != null) {
+                                        mCallback.onSignLog(count, signSuccess);
+                                    }
                                 }
                             }
                         }
                     }
                     //通知ui增加次数
-                    Intent intent = new Intent("autoSign");
-                    intent.putExtra("signCount", ++count);
-                    intent.putExtra("signSuccess", signSuccess);
-                    mManager.sendBroadcast(intent);
+                    ++count;
+                    if (mCallback != null) {
+                        mCallback.onSignLog(count, signSuccess);
+                    }
                     try {
-                        System.out.println("签到中");
                         Thread.sleep(Integer.parseInt(delay));
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
             }
-        });
+        };
         super.onCreate();
     }
 
@@ -116,43 +128,101 @@ public class AutoSignService extends Service {
         super.onDestroy();
     }
 
+    public void setAutoSignCallback(AutoSignCallback callback) {//注意这里以单个回调为例  如果是向多个activity传送数据 可以定义一个回调集合 在此处进行集合的添加
+        this.mCallback = callback;
+    }
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        mIsRun = true;
-        mCourses = (List<Course>) intent.getSerializableExtra("courses");
+    public void removeAutoSignCallback() {
+        this.mCallback = null;
+    }
+
+    // 通过回调机制，将Service内部的变化传递到外部
+    public interface AutoSignCallback {
+        void onStartAutoSign();
+
+        void onStopAutoSign();
+
+        void onSignLog(int sign, int signSuccess);
+    }
+
+
+    public void startAutoSign() {
         if (mCourses != null) {
-            mThread.start();
+            mIsRun = true;
+            new Thread(mRunnable).start();
+            mCallback.onStartAutoSign();
         }
-        return super.onStartCommand(intent, flags, startId);
+    }
+
+    public void stopAutoSign() {
+        mIsRun = false;
+        mCallback.onStopAutoSign();
+    }
+
+    public boolean isRun() {
+        return mIsRun;
     }
 
     private void setForegroundNotification() {
         // 在API11之后构建Notification的方式
         Notification.Builder builder = new Notification.Builder(this.getApplicationContext()); //获取一个Notification构造器
-        //Intent nfIntent = new Intent(this, MainActivity.class);
-        //nfIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        builder.setLargeIcon(BitmapFactory.decodeResource(this.getResources(),
+        Intent nfIntent = new Intent(this, MainActivity.class);
+        nfIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        builder.setContentIntent(PendingIntent.getActivity(this, 0, nfIntent, PendingIntent.FLAG_UPDATE_CURRENT))
+                .setLargeIcon(BitmapFactory.decodeResource(this.getResources(),
                         R.mipmap.ic_launcher))// 设置下拉列表中的图标(大图标)
-                .setContentTitle("学习崩") // 设置下拉列表里的标题
+
                 .setSmallIcon(R.mipmap.ic_launcher) // 设置状态栏内的小图标
-                .setContentText("正在监控中！！！！") // 设置上下文内容
+                .setContentText("正在监控中.....") // 设置上下文内容
                 .setWhen(System.currentTimeMillis()); // 设置该通知发生的时间
         Notification notification = builder.build(); // 获取构建好的Notification
-        //notification.defaults = Notification.DEFAULT_SOUND; //设置为默认的声音
+        notification.defaults = Notification.DEFAULT_SOUND; //设置为默认的声音
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             //修改安卓8.1以上系统报错
             String CHANNEL_ONE_ID = "com.xagu.xxb";
             String CHANNEL_ONE_NAME = "Channel One";
             NotificationChannel notificationChannel = new NotificationChannel(CHANNEL_ONE_ID, CHANNEL_ONE_NAME, NotificationManager.IMPORTANCE_MIN);
             notificationChannel.enableLights(false);//如果使用中的设备支持通知灯，则说明此通知通道是否应显示灯
-            notificationChannel.setShowBadge(false);//是否显示角标
+            notificationChannel.setShowBadge(true);//是否显示角标
             notificationChannel.setLockscreenVisibility(Notification.VISIBILITY_SECRET);
             NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
             manager.createNotificationChannel(notificationChannel);
             builder.setChannelId(CHANNEL_ONE_ID);
         }
         startForeground(1, notification);
+    }
+
+    void sendNotification(String courseName) {
+        String CHANNEL_ONE_ID = "com.xagu.xxb";
+        NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this.getApplicationContext(), CHANNEL_ONE_ID); //获取一个Notification构造器
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            String CHANNEL_ONE_NAME = "Channel One";
+            //修改安卓8.1以上系统报错
+            NotificationChannel notificationChannel = new NotificationChannel(CHANNEL_ONE_ID, CHANNEL_ONE_NAME, NotificationManager.IMPORTANCE_HIGH);
+            notificationChannel.enableLights(true);//如果使用中的设备支持通知灯，则说明此通知通道是否应显示灯
+            notificationChannel.setShowBadge(true);//是否显示角标
+            notificationChannel.setLockscreenVisibility(Notification.VISIBILITY_SECRET);
+            manager.createNotificationChannel(notificationChannel);
+            builder.setChannelId(CHANNEL_ONE_ID);
+        }
+        // 在API11之后构建Notification的方式
+        Intent nfIntent = new Intent(this, MainActivity.class);
+        nfIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        builder.setContentIntent(PendingIntent.getActivity(this, 0, nfIntent, PendingIntent.FLAG_UPDATE_CURRENT))
+                .setLargeIcon(BitmapFactory.decodeResource(this.getResources(),
+                        R.mipmap.ic_launcher))// 设置下拉列表中的图标(大图标)
+                .setContentTitle("签到成功") // 设置下拉列表里的标题
+                .setSmallIcon(R.mipmap.ic_launcher) // 设置状态栏内的小图标
+                .setContentText("课程：" + courseName) // 设置上下文内容
+                .setDefaults(NotificationCompat.DEFAULT_ALL)  //使用默认效果， 会根据手机当前环境播放铃声， 是否振动
+                .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setTicker("签到成功")
+                .setWhen(System.currentTimeMillis()); // 设置该通知发生的时间
+        Notification notification = builder.build(); // 获取构建好的Notification
+        notification.defaults = Notification.DEFAULT_SOUND; //设置为默认的声音
+        int randomId = (int) (Math.random() * 100);
+        manager.notify(randomId, notification);
     }
 
 
@@ -170,7 +240,6 @@ public class AutoSignService extends Service {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            MobclickAgent.reportError(BaseApplication.getAppContext(), e);
             return false;
         }
     }
@@ -193,7 +262,6 @@ public class AutoSignService extends Service {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            MobclickAgent.reportError(BaseApplication.getAppContext(), e);
             return null;
         }
     }
@@ -225,7 +293,7 @@ public class AutoSignService extends Service {
             if (activeType.equals("19")) {
                 continue;
             }
-            if (!activeType.equals("2") || !status.equals("1")) {
+            if (!status.equals("1")) {
                 break;
             }
             Active active = new Active();
@@ -236,29 +304,35 @@ public class AutoSignService extends Service {
             } else {
                 active.setId("");
             }
-            if (jsonNode.has("nameOne")) {
+            //后台签到不需要签到名字
+/*            if (jsonNode.has("nameOne")) {
                 active.setName(jsonNode.get("nameOne").asText());
             } else {
                 active.setName("");
-            }
-            if (jsonNode.has("nameFour")) {
+            }*/
+            //后台签到不需要结束时间
+            /*if (jsonNode.has("nameFour")) {
                 active.setTime(jsonNode.get("nameFour").asText());
             } else {
                 active.setTime("");
-            }
+            }*/
             if (jsonNode.has("url")) {
                 active.setUrl(jsonNode.get("url").asText());
             } else {
                 active.setUrl("");
             }
-            if (jsonNode.has("picUrl")) {
+            /*if (jsonNode.has("picUrl")) {
                 active.setCover_url(jsonNode.get("picUrl").asText());
             } else {
                 active.setCover_url("");
-            }
+            }*/
             actives.add(active);
         }
         return actives;
+    }
+
+    public void setCourseData(List<Course> courses) {
+        mCourses = courses;
     }
 
     private boolean requestActiveSignStatus(Active active) {
@@ -275,7 +349,6 @@ public class AutoSignService extends Service {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            MobclickAgent.reportError(BaseApplication.getAppContext(), e);
             return false;
         }
     }

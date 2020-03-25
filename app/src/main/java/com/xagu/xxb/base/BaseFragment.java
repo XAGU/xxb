@@ -26,5 +26,6 @@ public abstract class BaseFragment extends Fragment {
     }
 
 
+
     protected abstract View onSubViewLoaded(LayoutInflater layoutInflater, ViewGroup container);
 }
