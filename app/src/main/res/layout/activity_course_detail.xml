@@ -33,6 +33,36 @@
 
     </RelativeLayout>
 
+    <RelativeLayout
+        android:id="@+id/rl_clazz_score_container"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_below="@+id/subscription_container"
+        android:background="#EBE8E8">
+
+        <ImageView
+            android:id="@+id/iv_clazz_score"
+            android:layout_width="39dp"
+            android:layout_height="39dp"
+            android:layout_centerVertical="true"
+            android:padding="10dp"
+            android:src="@mipmap/icon_class_grade" />
+
+        <TextView
+            android:id="@+id/tv_class_score"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="-4dp"
+            android:singleLine="true"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:ellipsize="marquee"
+            android:layout_toEndOf="@+id/iv_clazz_score"
+            android:text="学生成绩"
+            android:textSize="14sp" />
+
+    </RelativeLayout>
+
     <com.xagu.xxb.views.RoundRectImageView
         android:id="@+id/riv_small_cover"
         android:layout_width="75dp"

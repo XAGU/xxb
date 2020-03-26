@@ -43,4 +43,6 @@ public interface IActivePresenter extends IBasePresenter<IActiveCallback> {
      * 取消监控
      */
     void unSub();
+
+    Course getTargetCourse();
 }

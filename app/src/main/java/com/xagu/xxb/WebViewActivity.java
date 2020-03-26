@@ -1,0 +1,177 @@
+package com.xagu.xxb;
+
+import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.os.Build;
+import android.os.Bundle;
+import android.text.TextUtils;
+import android.view.KeyEvent;
+import android.view.View;
+import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
+import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import com.franmontiel.persistentcookiejar.persistence.SharedPrefsCookiePersistor;
+import com.xagu.xxb.base.BaseActivity;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.List;
+
+import okhttp3.Cookie;
+
+public class WebViewActivity extends BaseActivity {
+
+    private WebView mWvMain;
+    private TextView mTvTopBar;
+    private ImageView mIvBack;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_clazz_score);
+        initView();
+        initEvent();
+        initWebView();
+    }
+
+    private void initWebView() {
+        //声明WebSettings子类
+        WebSettings webSettings = mWvMain.getSettings();
+        //如果访问的页面中要与Javascript交互，则webview必须设置支持Javascript
+        webSettings.setJavaScriptEnabled(true);
+        webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        // 若加载的 html 里有JS 在执行动画等操作，会造成资源浪费（CPU、电量）
+        // 在 onStop 和 onResume 里分别把 setJavaScriptEnabled() 给设置成 false 和 true 即可
+        //设置自适应屏幕，两者合用
+        webSettings.setUseWideViewPort(true); //将图片调整到适合webview的大小
+        webSettings.setLoadWithOverviewMode(true); // 缩放至屏幕的大小
+        //缩放操作
+        webSettings.setSupportZoom(true); //支持缩放，默认为true。是下面那个的前提。
+        webSettings.setBuiltInZoomControls(true); //设置内置的缩放控件。若为false，则该WebView不可缩放
+        webSettings.setDisplayZoomControls(false); //隐藏原生的缩放控件
+        //其他细节操作
+        webSettings.setCacheMode(WebSettings.LOAD_NO_CACHE); //关闭webview中缓存
+        webSettings.setAllowFileAccess(true); //设置可以访问文件
+        webSettings.setJavaScriptCanOpenWindowsAutomatically(true); //支持通过JS打开新窗口
+        webSettings.setLoadsImagesAutomatically(true); //支持自动加载图片
+        webSettings.setDefaultTextEncodingName("utf-8");//设置编码格式
+
+        mWvMain.setWebViewClient(new MyWebViewClient());
+        mWvMain.setWebChromeClient(new MyWebChromeClient());
+        //加载网络url
+        syncCookie(mWvMain);
+        Intent intent = getIntent();
+        String url = intent.getStringExtra("url");
+        mWvMain.loadUrl(url);
+    }
+
+    private void initEvent() {
+        mIvBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
+    }
+
+    private void initView() {
+        mWvMain = findViewById(R.id.wv_container);
+        mTvTopBar = findViewById(R.id.tv_top_bar);
+        mIvBack = findViewById(R.id.iv_back);
+    }
+
+
+    /**
+     * 注意事项：
+     * 1.如果需要传第三方cookie，请调用方法setAcceptThirdPartyCookies
+     * 2.如果这里有多个cookie，不要使用分号手动拼接，请多次调用setCookie方法
+     * 3.请在调用loadUrl方法前执行
+     *
+     * <p>
+     *
+     * @param webView
+     */
+    public void syncCookie(WebView webView) {
+        try {
+            CookieSyncManager.createInstance(this);
+            // 获取单例CookieManager实例
+            CookieManager cookieManager = CookieManager.getInstance();
+            // 设置应用程序的WebView实例是否应发送和接受cookie
+            cookieManager.setAcceptCookie(true);
+            if (webView != null) {
+                // 设置是否WebView应允许设置第三方cookie
+                cookieManager.setAcceptThirdPartyCookies(webView, true);
+            }
+            // 删除所有会话cookie
+            cookieManager.removeSessionCookies(null);
+            // 删除所有cookie
+            // cookieManager.removeAllCookies(null);
+            List<Cookie> cookies = new SharedPrefsCookiePersistor(this).loadAll();
+            // 设置原生cookie
+            if (cookies != null && cookies.size() > 0) {
+                for (int i = 0; i < cookies.size(); i++) {
+                    Cookie cookie = cookies.get(i);
+                    cookieManager.setCookie(".chaoxing.com", cookie.toString());
+                }
+            }
+            // 设置第三方cookie
+            //cookieManager.setCookie(url, String.format("这里填写cookie的名称=%s", "这里填写cookie的值"),null);
+            // 确保当前可通过getCookie API访问的所有cookie都写入持久存储
+            //cookieManager.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    class MyWebViewClient extends WebViewClient {
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+            super.shouldOverrideUrlLoading(view,request);
+            //view.loadUrl(request.getUrl().toString());
+            return true;
+        }
+
+        @Override
+        public void onPageStarted(WebView view, String url, Bitmap favicon) {
+            super.onPageStarted(view, url, favicon);
+        }
+
+        @Override
+        public void onPageFinished(WebView view, String url) {
+            super.onPageFinished(view, url);
+            //mWvMain.loadUrl("javascript:alert('hello pz')");
+            //avascript调用Nativ java
+            //mWvMain.addJavascriptInterface();
+        }
+    }
+
+    class MyWebChromeClient extends WebChromeClient {
+        @Override
+        public void onProgressChanged(WebView view, int newProgress) {
+            super.onProgressChanged(view, newProgress);
+        }
+
+        @Override
+        public void onReceivedTitle(WebView view, String title) {
+            super.onReceivedTitle(view, title);
+            mTvTopBar.setText(title);
+        }
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK && mWvMain.canGoBack()){
+            mWvMain.goBack();
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+}

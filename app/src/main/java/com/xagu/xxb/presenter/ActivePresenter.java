@@ -194,6 +194,11 @@ public class ActivePresenter implements IActivePresenter {
         AutoSignPresenter.getInstance().deleteSubSign(mTargetCourse);
     }
 
+    @Override
+    public Course getTargetCourse() {
+        return mTargetCourse;
+    }
+
 
     @Override
     public void getActiveInfo() {

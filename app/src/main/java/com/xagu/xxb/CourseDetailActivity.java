@@ -2,13 +2,13 @@ package com.xagu.xxb;
 
 import android.Manifest;
 import android.app.Dialog;
+import android.content.Intent;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -66,6 +66,7 @@ public class CourseDetailActivity extends BaseActivity implements IActiveCallbac
     private ViewGroup mDetailListContainer;
     private UILoader mUiLoader = null;
     private TextView mTvSubCourse;
+    private ImageView mMClazzScore;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,7 +85,7 @@ public class CourseDetailActivity extends BaseActivity implements IActiveCallbac
     }
 
     private void initEvent() {
-        mTvSubCourse.setText(mActivePresenter.isSub()?"取消监控":"监控");
+        mTvSubCourse.setText(mActivePresenter.isSub() ? "取消监控" : "监控");
         mTvSubCourse.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -93,7 +94,20 @@ public class CourseDetailActivity extends BaseActivity implements IActiveCallbac
                 } else {
                     mActivePresenter.sub();
                 }
-                mTvSubCourse.setText(mActivePresenter.isSub()?"取消监控":"监控");
+                mTvSubCourse.setText(mActivePresenter.isSub() ? "取消监控" : "监控");
+            }
+        });
+
+        mMClazzScore.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(CourseDetailActivity.this, WebViewActivity.class);
+                Course course = mActivePresenter.getTargetCourse();
+                String url = "https://mooc1-api.chaoxing.com/phone/moocAnalysis/analysisScore_new?courseId="
+                        + course.getCourseId() + "&classId="
+                        + course.getClassId() + "&isWeixin=0";
+                intent.putExtra("url", url);
+                startActivity(intent);
             }
         });
     }
@@ -105,6 +119,7 @@ public class CourseDetailActivity extends BaseActivity implements IActiveCallbac
         mTvCourseAuthor = findViewById(R.id.tv_course_author);
         mTvSubCourse = findViewById(R.id.detail_sub_btn);
         mDetailListContainer = findViewById(R.id.detail_list_container);
+        mMClazzScore = findViewById(R.id.iv_clazz_score);
         //
         if (mUiLoader == null) {
             mUiLoader = new UILoader(this) {
@@ -159,8 +174,18 @@ public class CourseDetailActivity extends BaseActivity implements IActiveCallbac
                 intent.putExtra("url",active.getUrl());
                 startActivity(intent);*/
                 //请求签到信息
-                showLoadingDialog();
-                mActivePresenter.requestActiveType(active);
+                if (Integer.parseInt(active.getActiveType()) == 42) {
+                    //测验
+                    Intent intent = new Intent(CourseDetailActivity.this, WebViewActivity.class);
+                    String url = "https://mobilelearn.chaoxing.com/pptTestPaperStu/questionChartStatistic?classId="
+                            + mActivePresenter.getTargetCourse().getClassId()
+                            + "&creatorFlag=1&activePrimaryId=" + active.getId() + "&appType=15";
+                    intent.putExtra("url", url);
+                    startActivity(intent);
+                } else if (Integer.parseInt(active.getActiveType()) == 2) {
+                    showLoadingDialog();
+                    mActivePresenter.requestActiveType(active);
+                }
             }
         });
         return detailListView;
@@ -172,7 +197,9 @@ public class CourseDetailActivity extends BaseActivity implements IActiveCallbac
         while (iterator.hasNext()) {
             Active active = iterator.next();
             if (Integer.parseInt(active.getActiveType()) != 2) {
-                iterator.remove();
+                if (Integer.parseInt(active.getActiveType()) != 42) {
+                    iterator.remove();
+                }
             }
         }
         if (actives.size() == 0) {
@@ -243,7 +270,7 @@ public class CourseDetailActivity extends BaseActivity implements IActiveCallbac
                 mSignQRCodeWindow.setData(active);
                 break;
             case Constants.TYPE_SIGN_LOCATION:
-                CourseDetailActivityPermissionsDispatcher.showLocationPopWindowWithPermissionCheck(this,active);
+                CourseDetailActivityPermissionsDispatcher.showLocationPopWindowWithPermissionCheck(this, active);
                 break;
             case Constants.TYPE_SIGN_PHOTO:
                 if (mSignPhotoWindow == null) {
