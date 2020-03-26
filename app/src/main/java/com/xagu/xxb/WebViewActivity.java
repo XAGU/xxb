@@ -10,6 +10,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
@@ -18,6 +19,9 @@ import android.webkit.WebViewClient;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.franmontiel.persistentcookiejar.persistence.SharedPrefsCookiePersistor;
 import com.xagu.xxb.base.BaseActivity;
 
@@ -66,6 +70,8 @@ public class WebViewActivity extends BaseActivity {
 
         mWvMain.setWebViewClient(new MyWebViewClient());
         mWvMain.setWebChromeClient(new MyWebChromeClient());
+        mWvMain.addJavascriptInterface(this, "androidjsbridge");
+        WebView.setWebContentsDebuggingEnabled(true);
         //加载网络url
         syncCookie(mWvMain);
         Intent intent = getIntent();
@@ -77,7 +83,11 @@ public class WebViewActivity extends BaseActivity {
         mIvBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                finish();
+                if (mWvMain.canGoBack()) {
+                    mWvMain.goBack();
+                }else {
+                    finish();
+                }
             }
         });
     }
@@ -134,7 +144,10 @@ public class WebViewActivity extends BaseActivity {
     class MyWebViewClient extends WebViewClient {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-            super.shouldOverrideUrlLoading(view,request);
+            if (request.getUrl().toString().equals("jsbridge://NotificationReady")){
+                mWvMain.loadUrl("javascript:jsBridge.device = 'android'");
+            }
+                super.shouldOverrideUrlLoading(view, request);
             //view.loadUrl(request.getUrl().toString());
             return true;
         }
@@ -147,7 +160,9 @@ public class WebViewActivity extends BaseActivity {
         @Override
         public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
-            //mWvMain.loadUrl("javascript:alert('hello pz')");
+            mWvMain.loadUrl("javascript:(function() {" +
+                    "javascript:jsBridge.device = 'android'})()");
+           // mWvMain.loadUrl("javascript:jsBridge.device = 'android'");
             //avascript调用Nativ java
             //mWvMain.addJavascriptInterface();
         }
@@ -168,10 +183,31 @@ public class WebViewActivity extends BaseActivity {
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_BACK && mWvMain.canGoBack()){
+        if (keyCode == KeyEvent.KEYCODE_BACK && mWvMain.canGoBack()) {
             mWvMain.goBack();
             return true;
         }
         return super.onKeyDown(keyCode, event);
+    }
+
+    @JavascriptInterface
+    public void postNotification(String name, String msg) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        switch (name) {
+            case "CLIENT_OPEN_URL":
+                try {
+                    JsonNode jsonNode = objectMapper.readTree(msg);
+                    String webUrl = jsonNode.get("webUrl").asText();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mWvMain.loadUrl(webUrl);
+                        }
+                    });
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                }
+                break;
+        }
     }
 }

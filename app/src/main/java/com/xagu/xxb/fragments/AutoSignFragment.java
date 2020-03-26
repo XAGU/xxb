@@ -367,7 +367,6 @@ public class AutoSignFragment extends BaseFragment implements IAutoSignCallback,
      */
     @Override
     public void onSignLog(int sign, int signSuccess) {
-        System.out.println("更新UI");
         mActivity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
