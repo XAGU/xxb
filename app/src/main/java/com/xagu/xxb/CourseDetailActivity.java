@@ -185,6 +185,10 @@ public class CourseDetailActivity extends BaseActivity implements IActiveCallbac
                 } else if (Integer.parseInt(active.getActiveType()) == 2) {
                     showLoadingDialog();
                     mActivePresenter.requestActiveType(active);
+                } else {
+                    Intent intent = new Intent(CourseDetailActivity.this, WebViewActivity.class);
+                    intent.putExtra("url", active.getUrl());
+                    startActivity(intent);
                 }
             }
         });
@@ -198,7 +202,9 @@ public class CourseDetailActivity extends BaseActivity implements IActiveCallbac
             Active active = iterator.next();
             if (Integer.parseInt(active.getActiveType()) != 2) {
                 if (Integer.parseInt(active.getActiveType()) != 42) {
-                    iterator.remove();
+                    if (Integer.parseInt(active.getActiveType()) != 19) {
+                        //iterator.remove();
+                    }
                 }
             }
         }

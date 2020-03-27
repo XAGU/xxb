@@ -31,5 +31,5 @@ public interface ISignPresenter extends IBasePresenter<ISignCallback> {
      */
     void initPanToken();
 
-    void uploadImg(String filepath,String uid);
+    void uploadImg(String filepath,String filename,String uid);
 }

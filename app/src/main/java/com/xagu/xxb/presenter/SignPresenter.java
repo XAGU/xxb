@@ -1,5 +1,10 @@
 package com.xagu.xxb.presenter;
 
+import android.net.Uri;
+import android.os.Build;
+import android.os.Environment;
+import android.os.ParcelFileDescriptor;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.umeng.analytics.MobclickAgent;
@@ -10,7 +15,13 @@ import com.xagu.xxb.interfaces.ISignPresenter;
 import com.xagu.xxb.utils.RetrofitManager;
 
 import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -162,15 +173,58 @@ public class SignPresenter implements ISignPresenter {
         });
     }
 
+    /**
+     *      * Copy File
+     *      *
+     *      * @param fileInputStream
+     *      * @param outFile
+     *      * @return
+     *      * @throws IOException
+     * 适配安卓10
+     *      
+     */
+    public static boolean copyFile(FileInputStream fileInputStream, File outFile) throws
+            IOException {
+        if (fileInputStream == null) {
+            return false;
+        }
+        FileChannel inputChannel = null;
+        FileChannel outputChannel = null;
+        try {
+            inputChannel = fileInputStream.getChannel();
+            outputChannel = new FileOutputStream(outFile).getChannel();
+            inputChannel.transferTo(0, inputChannel.size(), outputChannel);
+            inputChannel.close();
+            return true;
+        } catch (Exception e) {
+            return false;
+        } finally {
+            if (inputChannel != null) inputChannel.close();
+            if (outputChannel != null) outputChannel.close();
+        }
+    }
+
     @Override
-    public void uploadImg(String imgPath, String uid) {
-        File file = new File(imgPath);
+    public void uploadImg(String imgPath, String filename, String uid) {
+        File file = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            file = createAndroidQImageFile(Uri.parse(imgPath),filename);
+            if (file == null) {
+                for (ISignCallback callback : mCallbacks) {
+                    callback.onUploadImgFail();
+                }
+                return;
+            }
+        } else {
+            file = new File(imgPath);
+        }
         RequestBody requestFile = RequestBody.create(null, file);
         MultipartBody.Part body = MultipartBody.Part.createFormData("file", file.getName(), requestFile);
         Call<ResponseBody> task = mXxbApi.uploadImg(mPanToken, body, uid);
         task.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                //删除创建的文件
                 ResponseBody body = response.body();
                 try {
                     if (body != null) {
@@ -205,6 +259,41 @@ public class SignPresenter implements ISignPresenter {
                 }
             }
         });
+    }
+
+    /**
+     * 兼容安卓10，上传图片，获取File
+     *
+     * @param filename
+     * @return
+     * @throws FileNotFoundException
+     */
+    private File createAndroidQImageFile(Uri uri, String filename) {
+
+        try {
+            ParcelFileDescriptor parcelFileDescriptor = BaseApplication.getAppContext().getContentResolver().openFileDescriptor(uri, "r");
+            FileDescriptor fileDescriptor = parcelFileDescriptor.getFileDescriptor();
+            FileInputStream inputStream = new FileInputStream(fileDescriptor);
+            File filePictures = BaseApplication.getAppContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+            File file = new File(filePictures, filename);
+            file.delete();
+            if (!file.exists()) {
+                //图片不存在
+                if (!file.createNewFile()) {
+                    //上传失败
+                    return null;
+                }
+            }
+            if (!copyFile(inputStream, file)) {
+                //上传失败
+                return null;
+            }
+            return file;
+        } catch (IOException e) {
+            e.printStackTrace();
+            //上传失败
+        }
+        return null;
     }
 
 

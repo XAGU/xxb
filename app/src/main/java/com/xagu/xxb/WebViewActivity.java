@@ -62,7 +62,7 @@ public class WebViewActivity extends BaseActivity {
         webSettings.setBuiltInZoomControls(true); //设置内置的缩放控件。若为false，则该WebView不可缩放
         webSettings.setDisplayZoomControls(false); //隐藏原生的缩放控件
         //其他细节操作
-        webSettings.setCacheMode(WebSettings.LOAD_NO_CACHE); //关闭webview中缓存
+        webSettings.setCacheMode(WebSettings.LOAD_DEFAULT); //关闭webview中缓存
         webSettings.setAllowFileAccess(true); //设置可以访问文件
         webSettings.setJavaScriptCanOpenWindowsAutomatically(true); //支持通过JS打开新窗口
         webSettings.setLoadsImagesAutomatically(true); //支持自动加载图片
@@ -144,13 +144,11 @@ public class WebViewActivity extends BaseActivity {
     class MyWebViewClient extends WebViewClient {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-            if (request.getUrl().toString().equals("jsbridge://NotificationReady")){
-                mWvMain.loadUrl("javascript:jsBridge.device = 'android'");
-            }
-                super.shouldOverrideUrlLoading(view, request);
+
             //view.loadUrl(request.getUrl().toString());
-            return true;
+            return super.shouldOverrideUrlLoading(view, request);
         }
+        //ws://47.94.112.76:27025
 
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
@@ -162,9 +160,6 @@ public class WebViewActivity extends BaseActivity {
             super.onPageFinished(view, url);
             mWvMain.loadUrl("javascript:(function() {" +
                     "javascript:jsBridge.device = 'android'})()");
-           // mWvMain.loadUrl("javascript:jsBridge.device = 'android'");
-            //avascript调用Nativ java
-            //mWvMain.addJavascriptInterface();
         }
     }
 

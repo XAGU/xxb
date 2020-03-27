@@ -4,6 +4,8 @@ import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
+import android.os.Build;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -90,11 +92,11 @@ public class SignPhotoWindow extends PopupWindow implements ISignCallback {
                 String url = mActice.getUrl();
                 String uid = url.substring(url.indexOf("&uid=") + 5, url.lastIndexOf("&"));
                 mSignPresenter.Locationsign("", "", "-1", "-1", uid, mActice.getId(), mObjectId);
-            } else if (mTvSign.getText().equals("确定")){
+            } else if (mTvSign.getText().equals("确定")) {
                 if (TextUtils.isEmpty(mObjectId)) {
                     Toast.makeText(mContext, "请先选择图片~~", Toast.LENGTH_SHORT).show();
                 } else {
-                    SPUtil.put(Constants.SP_CONFIG_SIGN_PHOTO,mObjectId, Constants.SP_CONFIG);
+                    SPUtil.put(Constants.SP_CONFIG_SIGN_PHOTO, mObjectId, Constants.SP_CONFIG);
                     dismiss();
                 }
             }
@@ -142,7 +144,7 @@ public class SignPhotoWindow extends PopupWindow implements ISignCallback {
                                     String url = mActice.getUrl();
                                     mUid = url.substring(url.indexOf("&uid=") + 5, url.lastIndexOf("&"));
                                 }
-                                mSignPresenter.uploadImg(mLocalMedia.getPath(), mUid);
+                                mSignPresenter.uploadImg(mLocalMedia.getPath(), mLocalMedia.getFileName(), mUid);
                                 Glide.with(mContext).load(R.mipmap.uploading).into(mIvPhotoPick);
                             }
 
@@ -202,7 +204,7 @@ public class SignPhotoWindow extends PopupWindow implements ISignCallback {
 
     }
 
-    public void setAutoSignOption(String uid){
+    public void setAutoSignOption(String uid) {
         mTvSign.setText("确定");
         mUid = uid;
         setUpLoadImgListener();
@@ -241,7 +243,11 @@ public class SignPhotoWindow extends PopupWindow implements ISignCallback {
     @Override
     public void onUploadImgSuccess(String objectId) {
         this.mObjectId = objectId;
-        Glide.with(mContext).load(mLocalMedia.getPath()).into(mIvPhotoPick);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            Glide.with(mContext).load(Uri.parse(mLocalMedia.getPath())).into(mIvPhotoPick);
+        } else {
+            Glide.with(mContext).load(mLocalMedia.getPath()).into(mIvPhotoPick);
+        }
     }
 
     @Override

@@ -290,11 +290,13 @@ public class AutoSignService extends Service {
             } else {
                 continue;
             }
-            if (activeType.equals("19")) {
-                continue;
-            }
+            //未结束的任务永远在前面
             if (!status.equals("1")) {
                 break;
+            }
+            //不是签到任务
+            if (!activeType.equals("2")) {
+                continue;
             }
             Active active = new Active();
             active.setStatus(status);
