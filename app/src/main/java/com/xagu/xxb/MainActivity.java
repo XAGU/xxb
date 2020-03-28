@@ -54,7 +54,7 @@ public class MainActivity extends BaseActivity implements ILoginCallback {
             //从Login跳转过来的，不用判断登录
             return;
         }
-        String loginType = (String) SPUtil.get(Constants.SP_CONFIG_LOGIN_TYPE, Constants.LOGIN_TYPE_PASSWORD, Constants.SP_CONFIG);
+        String loginType = (String) SPUtil.get(Constants.SP_CONFIG_LOGIN_TYPE, Constants.LOGIN_TYPE_PHONE_CODE, Constants.SP_CONFIG);
         if (loginType.equals(Constants.LOGIN_TYPE_PASSWORD)){
             if (!mLoginPresenter.isLogin()) {
                 //未登录,跳转登录

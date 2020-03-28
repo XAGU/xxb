@@ -1,5 +1,6 @@
 package com.xagu.xxb;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -21,7 +22,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.franmontiel.persistentcookiejar.persistence.SharedPrefsCookiePersistor;
 import com.xagu.xxb.base.BaseActivity;
+import com.xagu.xxb.base.BaseApplication;
+import com.xagu.xxb.views.DialogFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import okhttp3.Cookie;
@@ -80,7 +84,7 @@ public class WebViewActivity extends BaseActivity {
             public void onClick(View v) {
                 if (mWvMain.canGoBack()) {
                     mWvMain.goBack();
-                }else {
+                } else {
                     finish();
                 }
             }
@@ -106,7 +110,7 @@ public class WebViewActivity extends BaseActivity {
      */
     public void syncCookie(WebView webView) {
         try {
-            CookieSyncManager.createInstance(this);
+            //CookieSyncManager.createInstance(this);
             // 获取单例CookieManager实例
             CookieManager cookieManager = CookieManager.getInstance();
             // 设置应用程序的WebView实例是否应发送和接受cookie
@@ -136,10 +140,31 @@ public class WebViewActivity extends BaseActivity {
         }
     }
 
+    public void syncCookieToOkHttp(WebView webView) {
+        try {
+            //CookieSyncManager.createInstance(this);
+            // 获取单例CookieManager实例
+            CookieManager cookieManager = CookieManager.getInstance();
+            String cookieStr = cookieManager.getCookie("chaoxing.com").replaceAll(" ","");
+            List<Cookie> cookies = new ArrayList<>();
+            String[] stringStrList = cookieStr.split(";");
+            for (String s : stringStrList) {
+                String[] split = s.split("=");
+                Cookie cookie = new Cookie.Builder().domain("chaoxing.com")
+                        .name(split[0])
+                        .value(split[1])
+                        .build();
+                cookies.add(cookie);
+            }
+            new SharedPrefsCookiePersistor(this).saveAll(cookies);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     class MyWebViewClient extends WebViewClient {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-
             //view.loadUrl(request.getUrl().toString());
             return super.shouldOverrideUrlLoading(view, request);
         }
@@ -147,15 +172,40 @@ public class WebViewActivity extends BaseActivity {
 
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
+            mWvMain.setVisibility(View.INVISIBLE);
+            showLoadingDialog();
             super.onPageStarted(view, url, favicon);
         }
 
         @Override
         public void onPageFinished(WebView view, String url) {
-            super.onPageFinished(view, url);
             mWvMain.loadUrl("javascript:(function() {" +
-                    "javascript:jsBridge.device = 'android'})()");
+                    "javascript:jsBridge.device = 'android';" +
+                    "$(\"#header > div > div.left_arrow\").hide();" +
+                    "$(\"body > div.main > h1\").hide();" +
+                    "$(\"#ctitle\").css('visibility','hidden');})()");
+            BaseApplication.getsHandler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    mWvMain.setVisibility(View.VISIBLE);
+                    if (mDialog != null) {
+                        mDialog.dismiss();
+                    }
+                }
+            }, 300);
+            super.onPageFinished(view, url);
         }
+    }
+
+    private Dialog mDialog = null;
+
+    private void showLoadingDialog() {
+        if (mDialog != null) {
+            mDialog.dismiss();
+            mDialog = null;
+        }
+        mDialog = DialogFactory.creatRequestDialog(this, "加载中...");
+        mDialog.show();
     }
 
     class MyWebChromeClient extends WebChromeClient {
@@ -197,6 +247,14 @@ public class WebViewActivity extends BaseActivity {
                 } catch (JsonProcessingException e) {
                     e.printStackTrace();
                 }
+                break;
+            case "CLIENT_THIRD_LOGIN":
+                syncCookieToOkHttp(mWvMain);
+                Intent intent = new Intent(this, MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.putExtra("isFromLogin", true);
+                startActivity(intent);
+                finish();
                 break;
         }
     }

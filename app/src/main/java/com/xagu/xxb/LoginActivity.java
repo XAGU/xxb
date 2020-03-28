@@ -25,12 +25,14 @@ public class LoginActivity extends BaseActivity implements ILoginCallback {
     private EditText mEtPassword;
     private EditText mEtUsername;
     private Button mBtnLogin;
-    private TextView mTvForgetPassword;
     private LoginPresenter mLoginPresenter;
     private ImageView mIvQrCode;
     private ImageView mIvDeleteInput;
     private ImageView mIvPassVisibility;
     private TextView mTvPhoneCodeLogin;
+    private TextView mTvRegister;
+    private TextView mTvForgotPass;
+    private TextView mTvOtherLogin;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,11 +54,13 @@ public class LoginActivity extends BaseActivity implements ILoginCallback {
         mEtUsername = findViewById(R.id.et_username);
         mEtPassword = findViewById(R.id.et_phone_code);
         mBtnLogin = findViewById(R.id.btn_login);
-        mTvForgetPassword = findViewById(R.id.tv_request_phone_code);
         mTvPhoneCodeLogin = findViewById(R.id.tv_phone_code_login);
         mIvQrCode = findViewById(R.id.iv_qr_code);
         mIvDeleteInput = findViewById(R.id.iv_input_delete);
         mIvPassVisibility = findViewById(R.id.iv_pass_visibility);
+        mTvRegister = findViewById(R.id.tv_register);
+        mTvForgotPass = findViewById(R.id.tv_forgot_pass);
+        mTvOtherLogin = findViewById(R.id.tv_other_login);
         //Glide.with(this).load("http://passport2.chaoxing.com/createqr?uuid="+UUID.randomUUID()).into(mIvQrCode);
     }
 
@@ -121,6 +125,33 @@ public class LoginActivity extends BaseActivity implements ILoginCallback {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(LoginActivity.this,LoginByCodeActivity.class));
+            }
+        });
+
+        mTvRegister.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(LoginActivity.this,WebViewActivity.class);
+                intent.putExtra("url","https://passport2-api.chaoxing.com:443/v11/register");
+                startActivity(intent);
+            }
+        });
+
+        mTvForgotPass.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(LoginActivity.this,WebViewActivity.class);
+                intent.putExtra("url","https://passport2-api.chaoxing.com:443/pwd/getpwdforapp?t=1&v=9");
+                startActivity(intent);
+            }
+        });
+
+        mTvOtherLogin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(LoginActivity.this,WebViewActivity.class);
+                intent.putExtra("url","https://passport2-api.chaoxing.com:443/v6/login");
+                startActivity(intent);
             }
         });
     }
