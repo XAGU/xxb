@@ -33,4 +33,10 @@ public class Constants {
     public static final String SP_CONFIG_SIGN_DELAY = "Sign_delay";
     //检查
     public static final int AUTO_SIGN_CHECK_SUCCESS = 1;
+    //登录类型
+    public static final String SP_CONFIG_LOGIN_TYPE = "loginType";
+    //通过验证码登录
+    public static final String LOGIN_TYPE_PHONE_CODE = "phoneCode";
+    //通过密码登录
+    public static final String LOGIN_TYPE_PASSWORD = "password";
 }

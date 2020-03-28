@@ -1,11 +1,8 @@
 package com.xagu.xxb;
 
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.os.Build;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
 import android.webkit.CookieManager;
@@ -25,8 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.franmontiel.persistentcookiejar.persistence.SharedPrefsCookiePersistor;
 import com.xagu.xxb.base.BaseActivity;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.List;
 
 import okhttp3.Cookie;
@@ -40,7 +35,7 @@ public class WebViewActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_clazz_score);
+        setContentView(R.layout.activity_web_view);
         initView();
         initEvent();
         initWebView();

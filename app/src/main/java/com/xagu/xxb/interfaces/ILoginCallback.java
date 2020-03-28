@@ -22,4 +22,11 @@ public interface ILoginCallback {
     void onNetworkError();
 
 
+    void onRequestPhoneCodeSuccess(String info);
+
+    void onRequestPhoneCodeFailed(String info);
+
+    void onLoginByPhoneCodeSuccess(String info);
+
+    void onLoginByPhoneCodeFailed(String info);
 }

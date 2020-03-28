@@ -47,4 +47,10 @@ public interface XxbApi {
     @Multipart
     @POST("https://pan-yz.chaoxing.com:443/upload")
     Call<ResponseBody> uploadImg(@Query("_token") String _token, @Part MultipartBody.Part file, @Query("puid") String puid);
+
+    @GET("https://passport2-api.chaoxing.com:443/api/sendcaptcha")
+    Call<ResponseBody> requestPhoneCode(@Query("to") String phone, @Query("countrycode") String countryCode, @Query("time") String time, @Query("enc") String enc);
+
+    @GET("https://passport2-api.chaoxing.com:443/v11/loginregister?cx_xxt_passport=json&countrycode=86&loginType=2&roleSelect=true")
+    Call<ResponseBody> loginByCode(@Query("uname") String username, @Query("code") String phoneCode);
 }

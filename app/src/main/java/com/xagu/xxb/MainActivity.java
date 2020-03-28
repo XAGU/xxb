@@ -16,8 +16,9 @@ import com.xagu.xxb.fragments.CourseFragment;
 import com.xagu.xxb.fragments.UserInfoFragment;
 import com.xagu.xxb.interfaces.ILoginCallback;
 import com.xagu.xxb.interfaces.ILoginPresenter;
-import com.xagu.xxb.presenter.AccountPresenter;
 import com.xagu.xxb.presenter.LoginPresenter;
+import com.xagu.xxb.utils.Constants;
+import com.xagu.xxb.utils.SPUtil;
 import com.xagu.xxb.views.TabEntity;
 
 import java.util.ArrayList;
@@ -53,10 +54,16 @@ public class MainActivity extends BaseActivity implements ILoginCallback {
             //从Login跳转过来的，不用判断登录
             return;
         }
-        if (!mLoginPresenter.isLogin()) {
-            //未登录,跳转登录
-            startActivity(new Intent(this, LoginActivity.class));
-            finish();
+        String loginType = (String) SPUtil.get(Constants.SP_CONFIG_LOGIN_TYPE, Constants.LOGIN_TYPE_PASSWORD, Constants.SP_CONFIG);
+        if (loginType.equals(Constants.LOGIN_TYPE_PASSWORD)){
+            if (!mLoginPresenter.isLogin()) {
+                //未登录,跳转登录
+                startActivity(new Intent(this, LoginActivity.class));
+                finish();
+            }
+        } else if (loginType.equals(Constants.LOGIN_TYPE_PHONE_CODE)){
+            //验证码登录
+            //TODO：判断登录是否失效
         }
     }
 
@@ -96,6 +103,27 @@ public class MainActivity extends BaseActivity implements ILoginCallback {
     public void onNetworkError() {
         Toast.makeText(this, "网络不佳", Toast.LENGTH_SHORT).show();
     }
+
+    @Override
+    public void onRequestPhoneCodeSuccess(String info) {
+
+    }
+
+    @Override
+    public void onRequestPhoneCodeFailed(String info) {
+
+    }
+
+    @Override
+    public void onLoginByPhoneCodeSuccess(String info) {
+
+    }
+
+    @Override
+    public void onLoginByPhoneCodeFailed(String info) {
+
+    }
+
 
     @Override
     protected void onDestroy() {

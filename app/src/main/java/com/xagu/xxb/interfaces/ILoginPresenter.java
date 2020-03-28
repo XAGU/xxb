@@ -19,4 +19,8 @@ public interface ILoginPresenter extends IBasePresenter<ILoginCallback> {
      * 是否登录
      */
     boolean isLogin();
+
+    void requestPhoneCode(String username);
+
+    void LoginByCode(String username, String phoneCode);
 }

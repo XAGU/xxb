@@ -2,18 +2,15 @@ package com.xagu.xxb.presenter;
 
 import android.text.TextUtils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.umeng.analytics.MobclickAgent;
 import com.xagu.xxb.base.BaseApplication;
-import com.xagu.xxb.bean.User;
 import com.xagu.xxb.data.XxbApi;
-import com.xagu.xxb.interfaces.IAccountCallback;
-import com.xagu.xxb.interfaces.IAccountPresenter;
 import com.xagu.xxb.interfaces.ILoginCallback;
 import com.xagu.xxb.interfaces.ILoginPresenter;
 import com.xagu.xxb.utils.Constants;
+import com.xagu.xxb.utils.MD5Util;
 import com.xagu.xxb.utils.RetrofitManager;
 import com.xagu.xxb.utils.SPUtil;
 
@@ -68,6 +65,7 @@ public class LoginPresenter implements ILoginPresenter {
                         if (body != null && body.string().contains("{\"success\":true}")) {
                             //登录成功
                             //记录账号
+                            SPUtil.put(Constants.SP_CONFIG_LOGIN_TYPE, Constants.LOGIN_TYPE_PASSWORD, Constants.SP_CONFIG);
                             SPUtil.put("username", username, Constants.SP_CONFIG);
                             SPUtil.put("password", password, Constants.SP_CONFIG);
                             //通知UI
@@ -109,6 +107,93 @@ public class LoginPresenter implements ILoginPresenter {
             //没有账号存在，未登录
             return false;
         }
+    }
+
+    @Override
+    public void requestPhoneCode(String phone) {
+        long currentTime = System.currentTimeMillis();
+        String enc = MD5Util.md5Encrypt32Lower(phone + "jsDyctOCnay7uotq" + currentTime);
+        Call<ResponseBody> task = mXxbApi.requestPhoneCode(phone, "86", currentTime + "", enc);
+        task.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                //数据
+                try {
+                    ResponseBody body = response.body();
+                    String msg = body.string();
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    JsonNode jsonNode = objectMapper.readTree(msg);
+                    boolean isSuccess = jsonNode.get("status").asBoolean();
+                    String info = jsonNode.get("mes").asText();
+                    for (ILoginCallback callback : mCallbacks) {
+                        if (isSuccess) {
+                            callback.onRequestPhoneCodeSuccess(info);
+                        } else {
+                            callback.onRequestPhoneCodeFailed(info);
+                        }
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    MobclickAgent.reportError(BaseApplication.getAppContext(), e);
+                    for (ILoginCallback callback : mCallbacks) {
+                        callback.onRequestPhoneCodeFailed("未知错误");
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                //网络错误
+                for (ILoginCallback callback : mCallbacks) {
+                    callback.onNetworkError();
+                }
+            }
+        });
+    }
+
+    @Override
+    public void LoginByCode(String username, String phoneCode) {
+        Call<ResponseBody> task = mXxbApi.loginByCode(username, phoneCode);
+        task.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                //数据
+                try {
+                    ResponseBody body = response.body();
+                    String msg = body.string();
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    JsonNode jsonNode = objectMapper.readTree(msg);
+                    boolean isSuccess = jsonNode.get("status").asBoolean();
+                    String info = jsonNode.get("mes").asText();
+                    for (ILoginCallback callback : mCallbacks) {
+                        if (isSuccess) {
+                            //登录成功
+                            //记录账号
+                            SPUtil.put(Constants.SP_CONFIG_LOGIN_TYPE, Constants.LOGIN_TYPE_PHONE_CODE, Constants.SP_CONFIG);
+                            SPUtil.put("username", username, Constants.SP_CONFIG);
+                            //通知UI
+                            callback.onLoginByPhoneCodeSuccess(info);
+                        } else {
+                            callback.onLoginByPhoneCodeFailed(info);
+                        }
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    MobclickAgent.reportError(BaseApplication.getAppContext(), e);
+                    for (ILoginCallback callback : mCallbacks) {
+                        callback.onLoginByPhoneCodeFailed("未知错误");
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                //网络错误
+                for (ILoginCallback callback : mCallbacks) {
+                    callback.onNetworkError();
+                }
+            }
+        });
     }
 
 
