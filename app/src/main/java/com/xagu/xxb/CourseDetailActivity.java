@@ -67,6 +67,7 @@ public class CourseDetailActivity extends BaseActivity implements IActiveCallbac
     private UILoader mUiLoader = null;
     private TextView mTvSubCourse;
     private ImageView mMClazzScore;
+    private ImageView mTaskSign;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,9 +104,26 @@ public class CourseDetailActivity extends BaseActivity implements IActiveCallbac
             public void onClick(View v) {
                 Intent intent = new Intent(CourseDetailActivity.this, WebViewActivity.class);
                 Course course = mActivePresenter.getTargetCourse();
-                String url = "https://mooc1-api.chaoxing.com/phone/moocAnalysis/analysisScore_new?courseId="
+                //https://mooc1-api.chaoxing.com:443/phone/moocAnalysis/statistic-chart?courseId=210701456&classId=22038121
+                String url = "https://mooc1-api.chaoxing.com:443/phone/moocAnalysis/statistic-chart?courseId="
                         + course.getCourseId() + "&classId="
-                        + course.getClassId() + "&isWeixin=0";
+                        + course.getClassId() + "&isWeixin=2";
+/*                String url = "https://mooc1-api.chaoxing.com/phone/moocAnalysis/analysisScore_new?courseId="
+                        + course.getCourseId() + "&classId="
+                        + course.getClassId() + "&isWeixin=0";*/
+                intent.putExtra("url", url);
+                startActivity(intent);
+            }
+        });
+        mTaskSign.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(CourseDetailActivity.this, WebViewActivity.class);
+                Course course = mActivePresenter.getTargetCourse();
+                //https://mobilelearn.chaoxing.com:443/pptSign/gotasksign?courseId=210701456&classId=22038121&puid=135683238&source=1&showSaveBtn=0
+                String url = "https://mobilelearn.chaoxing.com:443/pptSign/gotasksign?courseId="
+                        + course.getCourseId() + "&classId="
+                        + course.getClassId() + "&puid=0&source=1&showSaveBtn=0";
                 intent.putExtra("url", url);
                 startActivity(intent);
             }
@@ -120,6 +138,7 @@ public class CourseDetailActivity extends BaseActivity implements IActiveCallbac
         mTvSubCourse = findViewById(R.id.detail_sub_btn);
         mDetailListContainer = findViewById(R.id.detail_list_container);
         mMClazzScore = findViewById(R.id.iv_clazz_score);
+        mTaskSign = findViewById(R.id.iv_task_sign);
         //
         if (mUiLoader == null) {
             mUiLoader = new UILoader(this) {

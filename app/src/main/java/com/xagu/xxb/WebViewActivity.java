@@ -7,15 +7,18 @@ import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
 import android.webkit.CookieManager;
-import android.webkit.CookieSyncManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.Nullable;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -145,7 +148,7 @@ public class WebViewActivity extends BaseActivity {
             //CookieSyncManager.createInstance(this);
             // 获取单例CookieManager实例
             CookieManager cookieManager = CookieManager.getInstance();
-            String cookieStr = cookieManager.getCookie("chaoxing.com").replaceAll(" ","");
+            String cookieStr = cookieManager.getCookie("chaoxing.com").replaceAll(" ", "");
             List<Cookie> cookies = new ArrayList<>();
             String[] stringStrList = cookieStr.split(";");
             for (String s : stringStrList) {
@@ -166,8 +169,28 @@ public class WebViewActivity extends BaseActivity {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
             //view.loadUrl(request.getUrl().toString());
+            //作业答案
+            String url = request.getUrl().toString();
+            if (url.contains("doHomeWork")) {
+                //https://mooc1-api.chaoxing.com:443/work/phone/task-work?taskrefId=7578583&courseId=210701456&classId=22038121
+                url = url.replace("doHomeWork", "selectWorkQuestionYiPiYue");
+                view.loadUrl(url);
+                return true;
+            }
             return super.shouldOverrideUrlLoading(view, request);
         }
+
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+            if (url.contains("doHomeWork")) {
+                //https://mooc1-api.chaoxing.com:443/work/phone/task-work?taskrefId=7578583&courseId=210701456&classId=22038121
+                url = url.replace("doHomeWork", "selectWorkQuestionYiPiYue");
+                view.loadUrl(url);
+                return true;
+            }
+            return super.shouldOverrideUrlLoading(view, url);
+        }
+
         //ws://47.94.112.76:27025
 
         @Override
@@ -183,7 +206,8 @@ public class WebViewActivity extends BaseActivity {
                     "javascript:jsBridge.device = 'android';" +
                     "$(\"#header > div > div.left_arrow\").hide();" +
                     "$(\"body > div.main > h1\").hide();" +
-                    "$(\"#ctitle\").css('visibility','hidden');})()");
+                    "$(\"#ctitle\").css('visibility','hidden');" +
+                    "uid = '135683238';})()");
             BaseApplication.getsHandler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -254,6 +278,15 @@ public class WebViewActivity extends BaseActivity {
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.putExtra("isFromLogin", true);
                 startActivity(intent);
+                finish();
+                break;
+            case "CLIENT_REFRESH_STATUS":
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(WebViewActivity.this, "发布签到成功", Toast.LENGTH_SHORT).show();
+                    }
+                });
                 finish();
                 break;
         }
