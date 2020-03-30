@@ -61,14 +61,14 @@
             android:text="学情统计"
             android:textSize="14sp" />
 
-        <ImageView
+<!--        <ImageView
             android:id="@+id/iv_task_sign"
             android:layout_width="39dp"
             android:layout_height="39dp"
             android:layout_centerVertical="true"
             android:layout_toStartOf="@+id/tv_task_sign"
             android:padding="10dp"
-            android:src="@mipmap/task_sign" />
+            android:src="@mipmap/icon_task_sign" />
 
         <TextView
             android:id="@+id/tv_task_sign"
@@ -82,7 +82,7 @@
             android:ellipsize="marquee"
             android:text="签到发布"
             android:layout_marginEnd="10dp"
-            android:textSize="14sp" />
+            android:textSize="14sp" />-->
 
     </RelativeLayout>
 

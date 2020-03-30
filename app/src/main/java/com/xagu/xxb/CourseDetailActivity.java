@@ -67,7 +67,6 @@ public class CourseDetailActivity extends BaseActivity implements IActiveCallbac
     private UILoader mUiLoader = null;
     private TextView mTvSubCourse;
     private ImageView mMClazzScore;
-    private ImageView mTaskSign;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,7 +114,7 @@ public class CourseDetailActivity extends BaseActivity implements IActiveCallbac
                 startActivity(intent);
             }
         });
-        mTaskSign.setOnClickListener(new View.OnClickListener() {
+/*        mTaskSign.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(CourseDetailActivity.this, WebViewActivity.class);
@@ -127,7 +126,7 @@ public class CourseDetailActivity extends BaseActivity implements IActiveCallbac
                 intent.putExtra("url", url);
                 startActivity(intent);
             }
-        });
+        });*/
     }
 
     private void initView() {
@@ -138,7 +137,6 @@ public class CourseDetailActivity extends BaseActivity implements IActiveCallbac
         mTvSubCourse = findViewById(R.id.detail_sub_btn);
         mDetailListContainer = findViewById(R.id.detail_list_container);
         mMClazzScore = findViewById(R.id.iv_clazz_score);
-        mTaskSign = findViewById(R.id.iv_task_sign);
         //
         if (mUiLoader == null) {
             mUiLoader = new UILoader(this) {

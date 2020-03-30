@@ -19,9 +19,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 /**
- * Created by XAGU on 2020/3/14
- * Email:xagu_qc@foxmail.com
- * Describe: TODO
+ * Created by csdn
+ * Describe: 状态栏相关
  */
 public class StatusBarUtil {
     public final static int TYPE_MIUI = 0;
