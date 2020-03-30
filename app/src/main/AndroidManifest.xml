@@ -32,6 +32,7 @@
             android:value="0b2cb2df327eb65a4ee5ca175ef544b7" />
 
         <service android:name=".service.AutoSignService" />
+        <service android:name=".service.AnswerRaceService" />
 
         <activity android:name=".CourseDetailActivity" />
         <activity android:name=".MainActivity">

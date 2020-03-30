@@ -2,9 +2,13 @@ package com.xagu.xxb;
 
 import android.Manifest;
 import android.app.Dialog;
+import android.app.Service;
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,6 +32,7 @@ import com.xagu.xxb.bean.Active;
 import com.xagu.xxb.bean.Course;
 import com.xagu.xxb.interfaces.IActiveCallback;
 import com.xagu.xxb.presenter.ActivePresenter;
+import com.xagu.xxb.service.AnswerRaceService;
 import com.xagu.xxb.utils.Constants;
 import com.xagu.xxb.utils.UIUtil;
 import com.xagu.xxb.views.DialogFactory;
@@ -48,7 +53,7 @@ import permissions.dispatcher.OnPermissionDenied;
 import permissions.dispatcher.RuntimePermissions;
 
 @RuntimePermissions
-public class CourseDetailActivity extends BaseActivity implements IActiveCallback {
+public class CourseDetailActivity extends BaseActivity implements IActiveCallback, AnswerRaceService.AnswerRaceCallback {
 
     private ActivePresenter mActivePresenter;
     private ImageView mIvBigCover;
@@ -67,6 +72,11 @@ public class CourseDetailActivity extends BaseActivity implements IActiveCallbac
     private UILoader mUiLoader = null;
     private TextView mTvSubCourse;
     private ImageView mMClazzScore;
+    private TextView mTvAnswerRace;
+
+    private ServiceConnection mConn;
+    private AnswerRaceService mAnswerRaceService;
+    private ImageView mIvAnswerRace;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +85,7 @@ public class CourseDetailActivity extends BaseActivity implements IActiveCallbac
         initView();
         initPresenter();
         initEvent();
+        initAnswerRaceService();
     }
 
     private void initPresenter() {
@@ -114,6 +125,27 @@ public class CourseDetailActivity extends BaseActivity implements IActiveCallbac
                 startActivity(intent);
             }
         });
+        mTvAnswerRace.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
+        mIvAnswerRace.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mAnswerRaceService == null || !mAnswerRaceService.isRun()) {
+                    //没有运行，点击开始运行
+                    Intent service = new Intent(CourseDetailActivity.this, AnswerRaceService.class);
+                    CourseDetailActivity.this.bindService(service, mConn, Service.BIND_AUTO_CREATE);
+                } else {
+                    mAnswerRaceService.stopAnswerRace();
+                    CourseDetailActivity.this.unbindService(mConn);
+                    mAnswerRaceService = null;
+                }
+            }
+        });
 /*        mTaskSign.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -137,6 +169,8 @@ public class CourseDetailActivity extends BaseActivity implements IActiveCallbac
         mTvSubCourse = findViewById(R.id.detail_sub_btn);
         mDetailListContainer = findViewById(R.id.detail_list_container);
         mMClazzScore = findViewById(R.id.iv_clazz_score);
+        mTvAnswerRace = findViewById(R.id.tv_answer_race);
+        mIvAnswerRace = findViewById(R.id.iv_answer_race);
         //
         if (mUiLoader == null) {
             mUiLoader = new UILoader(this) {
@@ -155,6 +189,28 @@ public class CourseDetailActivity extends BaseActivity implements IActiveCallbac
                 }
             });
         }
+    }
+
+
+    private void initAnswerRaceService() {
+        mConn = new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder binder) {
+                AnswerRaceService.MyBinder myBinder = (AnswerRaceService.MyBinder) binder;
+                mAnswerRaceService = myBinder.getService();
+                mAnswerRaceService.setAutoSignCallback(CourseDetailActivity.this);
+                mAnswerRaceService.setCourseData(mActivePresenter.getTargetCourse());
+                mAnswerRaceService.startAnswerRace();
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+                if (mAnswerRaceService != null) {
+                    mAnswerRaceService.stopAnswerRace();
+                    mAnswerRaceService = null;
+                }
+            }
+        };
     }
 
     private View createSuccessView(ViewGroup container) {
@@ -336,7 +392,12 @@ public class CourseDetailActivity extends BaseActivity implements IActiveCallbac
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mActivePresenter.unRegisterViewCallback(this);
+        if (mActivePresenter != null) {
+            mActivePresenter.unRegisterViewCallback(this);
+        }
+        if (mAnswerRaceService != null) {
+            this.unbindService(mConn);
+        }
     }
 
     private Dialog mDialog = null;
@@ -370,4 +431,15 @@ public class CourseDetailActivity extends BaseActivity implements IActiveCallbac
     }
 
 
+    @Override
+    public void onStartAnswerRace() {
+        mTvAnswerRace.setText("正在抢答...");
+        mIvAnswerRace.setImageResource(R.mipmap.icon_start_answer_race);
+    }
+
+    @Override
+    public void onStopAnswerRace() {
+        mTvAnswerRace.setText("开始抢答");
+        mIvAnswerRace.setImageResource(R.mipmap.icon_stop_answer_race);
+    }
 }

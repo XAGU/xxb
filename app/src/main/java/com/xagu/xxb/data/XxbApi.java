@@ -53,4 +53,7 @@ public interface XxbApi {
 
     @GET("https://passport2-api.chaoxing.com:443/v11/loginregister?cx_xxt_passport=json&countrycode=86&loginType=2&roleSelect=true")
     Call<ResponseBody> loginByCode(@Query("uname") String username, @Query("code") String phoneCode);
+
+    @GET("https://mobilelearn.chaoxing.com:443/pptAnswer/stuAnswer?role=&general=1&appType=15&stuMiddlePage=1")
+    Call<ResponseBody> AnswerRace(@Query("answerId") String answerId, @Query("classId") String classId,@Query("courseId") String courseId,@Query("stuName") String stuName);
 }
