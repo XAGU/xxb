@@ -263,6 +263,7 @@ public class AutoSignFragment extends BaseFragment implements IAutoSignCallback,
                 } else {
                     mAutoSignService.stopAutoSign();
                     mActivity.unbindService(mConn);
+                    mAutoSignService = null;
                 }
             }
         });

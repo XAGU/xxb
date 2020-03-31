@@ -39,4 +39,5 @@ public class Constants {
     public static final String LOGIN_TYPE_PHONE_CODE = "phoneCode";
     //通过密码登录
     public static final String LOGIN_TYPE_PASSWORD = "password";
+    public static final String LOGIN_TYPE_STUDENT_NUM = "studentNum";
 }

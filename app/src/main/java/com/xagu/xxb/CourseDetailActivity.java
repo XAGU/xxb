@@ -363,7 +363,9 @@ public class CourseDetailActivity extends BaseActivity implements IActiveCallbac
         BaseApplication.getsHandler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                mDialog.dismiss();
+                if (mDialog != null) {
+                    mDialog.dismiss();
+                }
             }
         }, 300);
 
@@ -439,6 +441,7 @@ public class CourseDetailActivity extends BaseActivity implements IActiveCallbac
 
     @Override
     public void onStopAnswerRace() {
+        mTvAnswerRace.setText("开始抢答");
         mTvAnswerRace.setText("开始抢答");
         mIvAnswerRace.setImageResource(R.mipmap.icon_stop_answer_race);
     }

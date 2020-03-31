@@ -26,6 +26,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.franmontiel.persistentcookiejar.persistence.SharedPrefsCookiePersistor;
 import com.xagu.xxb.base.BaseActivity;
 import com.xagu.xxb.base.BaseApplication;
+import com.xagu.xxb.utils.Constants;
+import com.xagu.xxb.utils.SPUtil;
 import com.xagu.xxb.views.DialogFactory;
 
 import java.util.ArrayList;
@@ -277,6 +279,8 @@ public class WebViewActivity extends BaseActivity {
                 Intent intent = new Intent(this, MainActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.putExtra("isFromLogin", true);
+                //记录账号
+                SPUtil.put(Constants.SP_CONFIG_LOGIN_TYPE, Constants.LOGIN_TYPE_STUDENT_NUM, Constants.SP_CONFIG);
                 startActivity(intent);
                 finish();
                 break;

@@ -27,13 +27,13 @@ public class MainActivity extends BaseActivity implements ILoginCallback {
 
     private ArrayList<Fragment> mFragments = new ArrayList<>();
 
-    private String[] mTitles = {"首页", "监控签到", "我","关于"};
+    private String[] mTitles = {"首页", "监控签到", "我", "关于"};
     private int[] mIconUnselectIds = {
             R.mipmap.tab_course, R.mipmap.tab_autosign,
-            R.mipmap.tab_userinfo,R.mipmap.tab_about};
+            R.mipmap.tab_userinfo, R.mipmap.tab_about};
     private int[] mIconSelectIds = {
             R.mipmap.tab_course_select, R.mipmap.tab_autosign_select,
-            R.mipmap.tab_userinfo_select,R.mipmap.tab_about_select};
+            R.mipmap.tab_userinfo_select, R.mipmap.tab_about_select};
     private ArrayList<CustomTabEntity> mTabEntities = new ArrayList<>();
     private CommonTabLayout mTabLayout;
     private ILoginPresenter mLoginPresenter;
@@ -54,14 +54,14 @@ public class MainActivity extends BaseActivity implements ILoginCallback {
             //从Login跳转过来的，不用判断登录
             return;
         }
-        String loginType = (String) SPUtil.get(Constants.SP_CONFIG_LOGIN_TYPE, Constants.LOGIN_TYPE_PHONE_CODE, Constants.SP_CONFIG);
-        if (loginType.equals(Constants.LOGIN_TYPE_PASSWORD)){
+        String loginType = (String) SPUtil.get(Constants.SP_CONFIG_LOGIN_TYPE, Constants.LOGIN_TYPE_PASSWORD, Constants.SP_CONFIG);
+        if (loginType.equals(Constants.LOGIN_TYPE_PASSWORD)) {
             if (!mLoginPresenter.isLogin()) {
                 //未登录,跳转登录
                 startActivity(new Intent(this, LoginActivity.class));
                 finish();
             }
-        } else if (loginType.equals(Constants.LOGIN_TYPE_PHONE_CODE)){
+        } else if (loginType.equals(Constants.LOGIN_TYPE_PHONE_CODE) || loginType.equals(Constants.LOGIN_TYPE_STUDENT_NUM)) {
             //验证码登录
             //TODO：判断登录是否失效
         }
