@@ -210,6 +210,297 @@ public class WebViewActivity extends BaseActivity {
                     "$(\"body > div.main > h1\").hide();" +
                     "$(\"#ctitle\").css('visibility','hidden');" +
                     "uid = '135683238';})()");
+            if (url.contains("mooc1-api.chaoxing.com/work/phone/task-work")) {
+                //添加打回作业
+                mWvMain.loadUrl("javascript: if($(\"body > div > p > span\").text() == \"分\"){\n" +
+                        "\t$(\"body > div > div > p\").after(\"<span class='BlueBtn' onclick='rework()'>打回重做</span>\");   \n" +
+                        "\tfunction rework() {\n" +
+                        "\t\tvar values = redo.toString().match(/(?<=\")\\d*?(?=\")/g);\n" +
+                        "\t\tvar workRelationId = values[0];\n" +
+                        "\t\tvar classId = values[1];\n" +
+                        "\t\tvar relationAnswerId = values[2];\n" +
+                        "\t\tvar courseId = values[3];\n" +
+                        "\t\tvar studentId = \"44399444\";\n" +
+                        "\t\t$(\".cx_alert-txt\").html(\"确认要打回作业吗?\");\n" +
+                        "\t\t$(\"#okBtn\").html(\"打回\");\n" +
+                        "\t\t$(\".cx_alert\").css(\"display\", \"block\");\n" +
+                        "\t\t$(\".cx_alert-box\").css(\"display\", \"block\");\n" +
+                        "\t\t$(\"#okBtn\").unbind();\n" +
+                        "\t\t$(\"#cancelBtn\").unbind();\n" +
+                        "\t\t$(\"#okBtn\").on(\"click\", function() {\n" +
+                        "\t\t\t$.ajax({\n" +
+                        "\t\t\t\ttype : \"get\",\n" +
+                        "\t\t\t\turl : \"/work/phone/reWork\",\n" +
+                        "\t\t\t\tdataType : \"json\",\n" +
+                        "\t\t\t\tdata : {\n" +
+                        "\t\t\t\t\t\"workRelationId\" : workRelationId,\n" +
+                        "\t\t\t\t\t\"classId\" : classId,\n" +
+                        "\t\t\t\t\t\"courseId\" : courseId,\n" +
+                        "\t\t\t\t\t\"relationAnswerId\" : relationAnswerId,\n" +
+                        "\t\t\t\t\t\"studentId\" : studentId\n" +
+                        "\t\t\t\t},\n" +
+                        "\t\t\t\tsuccess : function(data) {\n" +
+                        "\t\t\t\t\tif(data.status == true) {\n" +
+                        "\t\t\t\t\t\t$(\".cx_alert\").css(\"display\", \"none\");\n" +
+                        "\t\t\t\t\t\t$(\".cx_alert-box\").css(\"display\", \"none\");\n" +
+                        "\t\t\t\t\t\tjsBridge.postNotification('CLIENT_REWORK_SUCCESS', data.msg);\n" +
+                        "\t\t\t\t\t} else {\n" +
+                        "\t\t\t\t\t$(\".cx_alert\").css(\"display\", \"none\");\n" +
+                        "\t\t\t\t\t\t$(\".cx_alert\").css(\"display\", \"none\");\n" +
+                        "\t\t\t\t\t\t$(\".cx_alert-box\").css(\"display\", \"none\");\n" +
+                        "\t\t\t\t\t\topenWindowHintClient(1, data.msg, null, 1000);\n" +
+                        "\t\t\t\t\t}\n" +
+                        "\t\t\t\t}\n" +
+                        "\t\t\t});\n" +
+                        "\t\t});\n" +
+                        "\t\t\n" +
+                        "\t\t$(\"#cancelBtn\").on(\"click\", function() {\n" +
+                        "\t\t\t$(\".cx_alert\").css(\"display\", \"none\");\n" +
+                        "\t\t\t$(\".cx_alert-box\").css(\"display\", \"none\");\n" +
+                        "\t\t});\n" +
+                        "\t}\n" +
+                        "}\n" +
+                        "if($(\"body > div.startBtn > input[type=button]\").attr(\"value\")==\"查看详情\"||$(\"body > div > div.BtmCon > span\").text()==\"查看详情\"){\n" +
+                        "\t$(\"body > div.startBtn > input[type=button]\").before(\"<span class='BlueBtn' onclick='chooseDone()'>延长时间</span><br>\");\n" +
+                        "\t$(\"body > div > div.BtmCon > span\").before(\"<span class='BlueBtn' onclick='chooseDone()'>延长时间</span>\");\n" +
+                        "\t(function($){\n" +
+                        "\t\t$.getUrlParam = function(name){\n" +
+                        "\t\t\tvar reg = new RegExp(\"(^|&)\"+ name +\"=([^&]*)(&|$)\");\n" +
+                        "\t\t\tvar r = window.location.search.substr(1).match(reg);\n" +
+                        "\t\t\tif (r!=null) return unescape(r[2]); return null;\n" +
+                        "\t\t}\n" +
+                        "\t})(jQuery);\t    \n" +
+                        "    var script = document.createElement('script');\n" +
+                        "    script.src = \"/js/work/phone/iosSelectRem.js?v=2018-0704-1618\";\n" +
+                        "    document.getElementsByTagName('head')[0].appendChild(script);\n" +
+                        "\n" +
+                        "\n" +
+                        "    let linkElm = document.createElement('link');\n" +
+                        "    linkElm.setAttribute('rel', 'stylesheet');\n" +
+                        "    linkElm.setAttribute('type', 'text/css');\n" +
+                        "    linkElm.setAttribute('href', '/css/work/phone/iosSelectRem.css?v=2018-0704-1618');\n" +
+                        "    document.head.appendChild(linkElm);\n" +
+                        "\n" +
+                        "\n" +
+                        "\n" +
+                        "    function chooseDone() {\n" +
+                        "    \tshowTime();\n" +
+                        "\n" +
+                        "    }\n" +
+                        "    var now = new Date();\n" +
+                        "    var nowYear = now.getFullYear();\n" +
+                        "    var nowMonth = now.getMonth() + 1;\n" +
+                        "    var nowDate = now.getDate();\n" +
+                        "    var nowHour = now.getHours();\n" +
+                        "    var nowMinute = now.getMinutes();\n" +
+                        "    function formatYear (nowYear) {\n" +
+                        "    \tvar arr = [];\n" +
+                        "        for (var i = nowYear; i <= nowYear + 10; i++) {\n" +
+                        "    \t\tarr.push({\n" +
+                        "    \t\t\tid: i + '',\n" +
+                        "    \t\t\tvalue: i + '年'\n" +
+                        "    \t\t});\n" +
+                        "    \t}\n" +
+                        "    \treturn arr;\n" +
+                        "    }\n" +
+                        "    function formatMonth () {\n" +
+                        "    \tvar arr = [];\n" +
+                        "    \tfor (var i = 1; i <= 12; i++) {\n" +
+                        "    \t\tarr.push({\n" +
+                        "    \t\t\tid: i + '',\n" +
+                        "    \t\t\tvalue: i + '月'\n" +
+                        "    \t\t});\n" +
+                        "    \t}\n" +
+                        "    \treturn arr;\n" +
+                        "    }\n" +
+                        "    function formatDate (count) {\n" +
+                        "    \tvar arr = [];\n" +
+                        "    \tfor (var i = 1; i <= count; i++) {\n" +
+                        "    \t\tarr.push({\n" +
+                        "    \t\t\tid: i + '',\n" +
+                        "    \t\t\tvalue: i + '日'\n" +
+                        "    \t\t});\n" +
+                        "    \t}\n" +
+                        "    \treturn arr;\n" +
+                        "    }\n" +
+                        "    var yearData = function(callback) {\n" +
+                        "    \tcallback(formatYear(nowYear))\n" +
+                        "    };\n" +
+                        "    var monthData = function (year, callback) {\n" +
+                        "    \tcallback(formatMonth());\n" +
+                        "    };\n" +
+                        "    var dateData = function (year, month, callback) {\n" +
+                        "    \tif (/^(1|3|5|7|8|10|12)$/.test(month)) {\n" +
+                        "    \t\tcallback(formatDate(31));\n" +
+                        "    \t}\n" +
+                        "    \telse if (/^(4|6|9|11)$/.test(month)) {\n" +
+                        "    \t\tcallback(formatDate(30));\n" +
+                        "    \t}\n" +
+                        "    \telse if (/^2$/.test(month)) {\n" +
+                        "    \t\tif (year % 4 === 0 && year % 100 !==0 || year % 400 === 0) {\n" +
+                        "    \t\t\tcallback(formatDate(29));\n" +
+                        "    \t\t}\n" +
+                        "    \t\telse {\n" +
+                        "    \t\t\tcallback(formatDate(28));\n" +
+                        "    \t\t}\n" +
+                        "    \t}\n" +
+                        "    \telse {\n" +
+                        "    \t\tconsole.log(month);\n" +
+                        "    \t\tthrow new Error('month is illegal');\n" +
+                        "    \t}\n" +
+                        "    };\n" +
+                        "    var hourData = function(one, two, three, callback) {\n" +
+                        "    \tvar hours = [];\n" +
+                        "    \tfor (var i = 0,len = 24; i < len; i++) {\n" +
+                        "    \t\thours.push({\n" +
+                        "    \t\t\tid: i,\n" +
+                        "    \t\t\tvalue: i + '时'\n" +
+                        "    \t\t});\n" +
+                        "    \t}\n" +
+                        "    \tcallback(hours);\n" +
+                        "    };\n" +
+                        "    var minuteData = function(one, two, three, four, callback) {\n" +
+                        "    \tvar minutes = [];\n" +
+                        "    \tfor (var i = 0, len = 60; i < len; i++) {\n" +
+                        "    \t\tminutes.push({\n" +
+                        "    \t\t\tid: i,\n" +
+                        "    \t\t\tvalue: i + '分'\n" +
+                        "    \t\t});\n" +
+                        "    \t}\n" +
+                        "    \tcallback(minutes);\n" +
+                        "    };\n" +
+                        "\n" +
+                        "    var myendtime = '';\n" +
+                        "\n" +
+                        "    function showTime() {\n" +
+                        "    \tvar oneLevelId = nowYear;\n" +
+                        "    \tvar twoLevelId = nowMonth;\n" +
+                        "    \tvar threeLevelId = nowDate;\n" +
+                        "    \tvar fourLevelId = nowHour;\n" +
+                        "    \tvar fiveLevelId = nowMinute;\n" +
+                        "    \tvar iosSelect = new IosSelect(5, [yearData, monthData, dateData, hourData, minuteData], {\n" +
+                        "    \t\ttitle : '加时',\n" +
+                        "    \t\titemHeight : 0.6786,\n" +
+                        "    \t\theaderHeight : 0.819,\n" +
+                        "    \t\trelation : [1, 1, 0, 0],\n" +
+                        "    \t\titemShowCount : 7,\n" +
+                        "    \t\tcssUnit : 'rem',\n" +
+                        "    \t\toneLevelId : oneLevelId,\n" +
+                        "    \t\ttwoLevelId : twoLevelId,\n" +
+                        "    \t\tthreeLevelId : threeLevelId,\n" +
+                        "    \t\tfourLevelId : fourLevelId,\n" +
+                        "    \t\tfiveLevelId : fiveLevelId,\n" +
+                        "    \t\tcallback : function(selectOneObj, selectTwoObj, selectThreeObj, selectFourObj, selectFiveObj) {\n" +
+                        "    \t\t\tnowYear = selectOneObj.id;\n" +
+                        "    \t\t\tnowMonth = selectTwoObj.id;\n" +
+                        "    \t\t\tnowDate = selectThreeObj.id;\n" +
+                        "    \t\t\tnowHour = selectFourObj.id;\n" +
+                        "    \t\t\tnowMinute = selectFiveObj.id;\n" +
+                        "\n" +
+                        "    \t\t\tvar yt = selectOneObj.id;\n" +
+                        "    \t\t\tvar Mt = selectTwoObj.id;\n" +
+                        "    \t\t\tMt = addZero(Mt);\n" +
+                        "\n" +
+                        "    \t\t\tvar dt = selectThreeObj.id;\n" +
+                        "    \t\t\tdt = addZero(dt);\n" +
+                        "\n" +
+                        "    \t\t\tvar Ht = selectFourObj.id;\n" +
+                        "    \t\t\tHt = addZero(Ht);\n" +
+                        "\n" +
+                        "    \t\t\tvar mt = selectFiveObj.id;\n" +
+                        "    \t\t\tmt = addZero(mt);\n" +
+                        "\n" +
+                        "    \t\t\tmyendtime = yt + \"-\" + Mt + \"-\" + dt + \" \" + Ht + \":\" + mt;\n" +
+                        "    \t\t\taddTime();\n" +
+                        "    \t\t}\n" +
+                        "    \t});\n" +
+                        "    }\n" +
+                        "\n" +
+                        "    function addZero(i) {\n" +
+                        "    \tif (i < 10) {\n" +
+                        "    \t\ti = \"0\" + i;\n" +
+                        "    \t}\n" +
+                        "    \treturn i;\n" +
+                        "    }\n" +
+                        "\n" +
+                        "    function getCurrentTime() {\n" +
+                        "    \tvar now = new Date();\n" +
+                        "    \tvar year = now.getFullYear();\n" +
+                        "    \tvar month = now.getMonth() + 1;\n" +
+                        "    \tmonth = addZero(month);\n" +
+                        "    \tvar date = now.getDate();\n" +
+                        "    \tdate = addZero(date);\n" +
+                        "        var hour = now.getHours();\n" +
+                        "        hour = addZero(hour);\n" +
+                        "        var minute = now.getMinutes();\n" +
+                        "        minute = addZero(minute);\n" +
+                        "        var time = year + \"-\" + month + \"-\" + date + \" \" + hour + \":\" + minute + \":00\";\n" +
+                        "    \treturn time;\n" +
+                        "    }\n" +
+                        "    function addTime() {\n" +
+                        "    \tvar extraTime = myendtime;\n" +
+                        "    \tif (extraTime.length == 0) {\n" +
+                        "\t\t\tjsBridge.postNotification('CLIENT_REWORK_SUCCESS', \"请设置加时时间!\");\n" +
+                        "    \t\treturn;\n" +
+                        "    \t}\n" +
+                        "    \textraTime = extraTime + \":00\";\n" +
+                        "\n" +
+                        "    \tvar nowTime = getCurrentTime();\n" +
+                        "    \tif(nowTime >= extraTime) {\n" +
+                        "\t\t\tjsBridge.postNotification('CLIENT_REWORK_SUCCESS', \"加时需大于当前时间！\");\n" +
+                        "    \t\treturn;\n" +
+                        "    \t}\n" +
+                        "\n" +
+                        "    \tvar endTime = $(\"#endTime\").val();\n" +
+                        "    \tif(endTime >= extraTime) {\n" +
+                        "\t\t\tjsBridge.postNotification('CLIENT_REWORK_SUCCESS', \"加时需大于截止时间！\");\n" +
+                        "    \t\treturn;\n" +
+                        "    \t}\n" +
+                        "\n" +
+                        "    \tvar workId = $.getUrlParam('taskrefId');\n" +
+                        "    \tvar ids = $.getUrlParam('cpi');\n" +
+                        "    \tvar classId = $.getUrlParam('classId');\n" +
+                        "    \tvar courseId = $.getUrlParam('courseId');\n" +
+                        "    \t$(\".cx_alert-txt\").html(\"确认要延长作业时间吗?\");\n" +
+                        "    \t$(\"#okBtn\").html(\"延长\");\n" +
+                        "    \t$(\".cx_alert\").css(\"display\", \"block\");\n" +
+                        "    \t$(\".cx_alert-box\").css(\"display\", \"block\");\n" +
+                        "    \t$(\"#okBtn\").unbind();\n" +
+                        "    \t$(\"#cancelBtn\").unbind();\n" +
+                        "    \t$(\"#okBtn\").on(\"click\", function() {\n" +
+                        "    \t\t$.ajax({\n" +
+                        "    \t\t\ttype : \"get\",\n" +
+                        "    \t\t\turl : \"/work/add-time\",\n" +
+                        "    \t\t\tdataType : \"json\",\n" +
+                        "    \t\t\tdata : {\n" +
+                        "    \t\t\t\t\"ids\" : ids,\n" +
+                        "    \t\t\t\t\"time\" : extraTime,\n" +
+                        "    \t\t\t\t\"workId\" : workId,\n" +
+                        "    \t\t\t\t\"classId\" : classId,\n" +
+                        "    \t\t\t\t\"courseId\" : courseId\n" +
+                        "    \t\t\t},\n" +
+                        "    \t\t\tsuccess : function(data) {\n" +
+                        "    \t\t\t\tif(data.status == true) {\n" +
+                        "    \t\t\t\t\t$(\".cx_alert\").css(\"display\", \"none\");\n" +
+                        "    \t\t\t\t\t$(\".cx_alert-box\").css(\"display\", \"none\");\n" +
+                        "    \t\t\t\t\tjsBridge.postNotification('CLIENT_REWORK_SUCCESS', data.msg);\n" +
+                        "    \t\t\t\t} else {\n" +
+                        "    \t\t\t\t$(\".cx_alert\").css(\"display\", \"none\");\n" +
+                        "\t\t\t\t\t\t$(\".cx_alert\").css(\"display\", \"none\");\n" +
+                        "    \t\t\t\t\t$(\".cx_alert-box\").css(\"display\", \"none\");\n" +
+                        "    \t\t\t\t\tjsBridge.postNotification('CLIENT_REWORK_SUCCESS', data.msg);\n" +
+                        "    \t\t\t\t}\n" +
+                        "    \t\t\t}\n" +
+                        "    \t\t});\n" +
+                        "    \t});\n" +
+                        "\n" +
+                        "    \t$(\"#cancelBtn\").on(\"click\", function() {\n" +
+                        "    \t\t$(\".cx_alert\").css(\"display\", \"none\");\n" +
+                        "    \t\t$(\".cx_alert-box\").css(\"display\", \"none\");\n" +
+                        "    \t});\n" +
+                        "    }\n" +
+                        "}");
+            }
             BaseApplication.getsHandler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -292,6 +583,24 @@ public class WebViewActivity extends BaseActivity {
                     }
                 });
                 finish();
+                break;
+            case "CLIENT_SHOW_MESSAGE":
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(WebViewActivity.this, msg, Toast.LENGTH_SHORT).show();
+                    }
+                });
+                break;
+            case "CLIENT_REWORK_SUCCESS":
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mWvMain.goBack();
+                        mWvMain.reload();
+                        Toast.makeText(WebViewActivity.this, msg, Toast.LENGTH_SHORT).show();
+                    }
+                });
                 break;
         }
     }
