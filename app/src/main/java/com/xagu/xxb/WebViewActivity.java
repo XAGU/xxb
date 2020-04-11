@@ -212,7 +212,14 @@ public class WebViewActivity extends BaseActivity {
                     "uid = '135683238';})()");
             if (url.contains("mooc1-api.chaoxing.com/work/phone/task-work")) {
                 //添加打回作业
-                mWvMain.loadUrl("javascript: if($(\"body > div > p > span\").text() == \"分\"){\n" +
+                mWvMain.loadUrl("javascript: (function($){\n" +
+                        "\t\t$.getUrlParam = function(name){\n" +
+                        "\t\t\tvar reg = new RegExp(\"(^|&)\"+ name +\"=([^&]*)(&|$)\");\n" +
+                        "\t\t\tvar r = window.location.search.substr(1).match(reg);\n" +
+                        "\t\t\tif (r!=null) return unescape(r[2]); return null;\n" +
+                        "\t\t}\n" +
+                        "\t})(jQuery);\n" +
+                        "if($(\"body > div > p > span\").text() == \"分\"){\n" +
                         "\t$(\"body > div > div > p\").after(\"<span class='BlueBtn' onclick='rework()'>打回重做</span>\");   \n" +
                         "\tfunction rework() {\n" +
                         "\t\tvar values = redo.toString().match(/(?<=\")\\d*?(?=\")/g);\n" +
@@ -220,7 +227,7 @@ public class WebViewActivity extends BaseActivity {
                         "\t\tvar classId = values[1];\n" +
                         "\t\tvar relationAnswerId = values[2];\n" +
                         "\t\tvar courseId = values[3];\n" +
-                        "\t\tvar studentId = \"44399444\";\n" +
+                        "\t\tvar studentId = $.getUrlParam('cpi');\n" +
                         "\t\t$(\".cx_alert-txt\").html(\"确认要打回作业吗?\");\n" +
                         "\t\t$(\"#okBtn\").html(\"打回\");\n" +
                         "\t\t$(\".cx_alert\").css(\"display\", \"block\");\n" +
@@ -263,17 +270,10 @@ public class WebViewActivity extends BaseActivity {
                         "if($(\"body > div.startBtn > input[type=button]\").attr(\"value\")==\"查看详情\"||$(\"body > div > div.BtmCon > span\").text()==\"查看详情\"){\n" +
                         "\t$(\"body > div.startBtn > input[type=button]\").before(\"<span class='BlueBtn' onclick='chooseDone()'>延长时间</span><br>\");\n" +
                         "\t$(\"body > div > div.BtmCon > span\").before(\"<span class='BlueBtn' onclick='chooseDone()'>延长时间</span>\");\n" +
-                        "\t(function($){\n" +
-                        "\t\t$.getUrlParam = function(name){\n" +
-                        "\t\t\tvar reg = new RegExp(\"(^|&)\"+ name +\"=([^&]*)(&|$)\");\n" +
-                        "\t\t\tvar r = window.location.search.substr(1).match(reg);\n" +
-                        "\t\t\tif (r!=null) return unescape(r[2]); return null;\n" +
-                        "\t\t}\n" +
-                        "\t})(jQuery);\t    \n" +
+                        "\t    \n" +
                         "    var script = document.createElement('script');\n" +
                         "    script.src = \"/js/work/phone/iosSelectRem.js?v=2018-0704-1618\";\n" +
                         "    document.getElementsByTagName('head')[0].appendChild(script);\n" +
-                        "\n" +
                         "\n" +
                         "    let linkElm = document.createElement('link');\n" +
                         "    linkElm.setAttribute('rel', 'stylesheet');\n" +
