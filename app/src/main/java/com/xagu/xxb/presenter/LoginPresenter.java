@@ -1,6 +1,7 @@
 package com.xagu.xxb.presenter;
 
 import android.text.TextUtils;
+import android.util.Base64;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -54,7 +55,7 @@ public class LoginPresenter implements ILoginPresenter {
 
     @Override
     public void Login(final String username, final String password) {
-        Call<ResponseBody> task = mXxbApi.login(username, password);
+        Call<ResponseBody> task = mXxbApi.login(username, new String(Base64.encodeToString(password.getBytes(), Base64.DEFAULT)));
         task.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -62,7 +63,7 @@ public class LoginPresenter implements ILoginPresenter {
                 try {
                     ResponseBody body = response.body();
                     for (ILoginCallback callback : mCallbacks) {
-                        if (body != null && body.string().contains("{\"success\":true}")) {
+                        if (body != null && body.string().contains("\"status\":true")) {
                             //登录成功
                             //记录账号
                             SPUtil.put(Constants.SP_CONFIG_LOGIN_TYPE, Constants.LOGIN_TYPE_PASSWORD, Constants.SP_CONFIG);

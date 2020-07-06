@@ -17,8 +17,8 @@ import retrofit2.http.Url;
  */
 public interface XxbApi {
 
-    @GET("http://i.chaoxing.com/vlogin")
-    Call<ResponseBody> login(@Query("userName") String username, @Query("passWord") String password);
+    @POST("https://passport2.chaoxing.com/fanyalogin?t=true&fid=-1&refer=http%3A%2F%2Fi.chaoxing.com")
+    Call<ResponseBody> login(@Query("uname") String username, @Query("password") String password);
 
     @GET("https://sso.chaoxing.com:443/apis/login/userLogin4Uname.do")
     Call<ResponseBody> getUserInfo();
@@ -32,8 +32,8 @@ public interface XxbApi {
     @GET()
     Call<ResponseBody> checkSignStatus(@Url String url);
 
-    @GET()
-    Call<ResponseBody> checkSignType(@Url String url);
+    @GET("https://mobilelearn.chaoxing.com/widget/sign/pcTeaSignController/endSign")
+    Call<ResponseBody> checkSignType(@Query("activeId") String activeId, @Query("classId") String classId, @Query("courseId") String courseId, @Query("isTeacherViewOpen") String isTeacherViewOpen);
 
     @GET("https://mobilelearn.chaoxing.com:443/v2/apis/sign/refreshQRCode")
     Call<ResponseBody> getQrCode(@Query("activeId") String activeId, @Query("time") String time);
@@ -55,5 +55,5 @@ public interface XxbApi {
     Call<ResponseBody> loginByCode(@Query("uname") String username, @Query("code") String phoneCode);
 
     @GET("https://mobilelearn.chaoxing.com:443/pptAnswer/stuAnswer?role=&general=1&appType=15&stuMiddlePage=1")
-    Call<ResponseBody> AnswerRace(@Query("answerId") String answerId, @Query("classId") String classId,@Query("courseId") String courseId,@Query("stuName") String stuName);
+    Call<ResponseBody> AnswerRace(@Query("answerId") String answerId, @Query("classId") String classId, @Query("courseId") String courseId, @Query("stuName") String stuName);
 }
