@@ -114,13 +114,7 @@ public class CourseDetailActivity extends BaseActivity implements IActiveCallbac
             public void onClick(View v) {
                 Intent intent = new Intent(CourseDetailActivity.this, WebViewActivity.class);
                 Course course = mActivePresenter.getTargetCourse();
-                //https://mooc1-api.chaoxing.com:443/phone/moocAnalysis/statistic-chart?courseId=210701456&classId=22038121
-                String url = "https://mooc1-api.chaoxing.com:443/phone/moocAnalysis/statistic-chart?courseId="
-                        + course.getCourseId() + "&classId="
-                        + course.getClassId() + "&isWeixin=2";
-/*                String url = "https://mooc1-api.chaoxing.com/phone/moocAnalysis/analysisScore_new?courseId="
-                        + course.getCourseId() + "&classId="
-                        + course.getClassId() + "&isWeixin=0";*/
+                String url = "https://intellectual-education-ans.chaoxing.com/studentportrait/index";
                 intent.putExtra("url", url);
                 startActivity(intent);
             }

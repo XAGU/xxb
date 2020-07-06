@@ -534,7 +534,11 @@ public class WebViewActivity extends BaseActivity {
         @Override
         public void onReceivedTitle(WebView view, String title) {
             super.onReceivedTitle(view, title);
-            mTvTopBar.setText(title);
+            if (title.startsWith("http")) {
+                mTvTopBar.setText("");
+            } else {
+                mTvTopBar.setText(title);
+            }
         }
     }
 

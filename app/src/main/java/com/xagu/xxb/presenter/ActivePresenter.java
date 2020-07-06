@@ -59,7 +59,7 @@ public class ActivePresenter implements IActivePresenter {
 
     public void setTargetCourse(Course course) {
         this.mTargetCourse = course;
-        if (SPUtil.contains(mTargetCourse.getCourseId(),Constants.SP_SUB_SIGN)) {
+        if (SPUtil.contains(mTargetCourse.getCourseId(), Constants.SP_SUB_SIGN)) {
             this.isSub = true;
         } else {
             isSub = false;
@@ -110,7 +110,7 @@ public class ActivePresenter implements IActivePresenter {
     @Override
     public void requestActiveType(Active active) {
         //以教师视角打开
-        Call<ResponseBody> task = mXxbApi.checkSignType(active.getUrl().replace("isTeacherViewOpen=0", "isTeacherViewOpen=1"));
+        Call<ResponseBody> task = mXxbApi.checkSignType(active.getId(), mTargetCourse.getClassId(), mTargetCourse.getCourseId(), "1");
         task.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -125,7 +125,7 @@ public class ActivePresenter implements IActivePresenter {
                             break;
                         case 0:
                             //普通签到或者拍照签到
-                            if (Integer.parseInt(doc.select("#ifPhoto").val()) == 1) {
+                            if (Integer.parseInt(doc.select("#ifphoto").val()) == 1) {
                                 //拍照签到
                                 active.setActiveTypeName(Constants.TYPE_SIGN_PHOTO);
                             } else {
@@ -139,7 +139,7 @@ public class ActivePresenter implements IActivePresenter {
                             break;
                         case 2:
                             //二维码签到
-                            if (Integer.parseInt(doc.select("#ifRefreshEwm").val()) == 1) {
+                            if (Integer.parseInt(doc.select("#ifrefreshewm").val()) == 1) {
                                 //随机二维码
                                 active.setActiveTypeName(Constants.TYPE_SIGN_RANDOM_QR);
                             } else {
