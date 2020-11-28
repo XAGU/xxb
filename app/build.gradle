@@ -7,9 +7,9 @@ android {
     defaultConfig {
         applicationId "com.xagu.xxb"
         minSdkVersion 22
-        targetSdkVersion 29
+        targetSdkVersion 30
         versionCode 1
-        versionName "1.1.2"
+        versionName "1.1.4"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

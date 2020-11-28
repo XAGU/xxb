@@ -107,8 +107,9 @@ public class SignPresenter implements ISignPresenter {
      * @param activeId
      * @return
      */
+    @Override
     public void getQrCode(String activeId) {
-        long time = new Date().getTime();
+        long time = System.currentTimeMillis();
         Call<ResponseBody> task = mXxbApi.getQrCode(activeId, String.valueOf(time));
         task.enqueue(new Callback<ResponseBody>() {
             @Override
@@ -208,7 +209,7 @@ public class SignPresenter implements ISignPresenter {
     public void uploadImg(String imgPath, String filename, String uid) {
         File file = null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            file = createAndroidQImageFile(Uri.parse(imgPath),filename);
+            file = createAndroidQImageFile(Uri.parse(imgPath), filename);
             if (file == null) {
                 for (ISignCallback callback : mCallbacks) {
                     callback.onUploadImgFail();

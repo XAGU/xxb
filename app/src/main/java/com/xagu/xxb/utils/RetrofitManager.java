@@ -4,11 +4,15 @@ import com.franmontiel.persistentcookiejar.ClearableCookieJar;
 import com.franmontiel.persistentcookiejar.PersistentCookieJar;
 import com.franmontiel.persistentcookiejar.cache.SetCookieCache;
 import com.franmontiel.persistentcookiejar.persistence.SharedPrefsCookiePersistor;
+import com.xagu.xxb.Interceptor.UserAgentInterceptor;
 import com.xagu.xxb.base.BaseApplication;
 
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
+import okhttp3.Response;
 import retrofit2.Retrofit;
 
 /**
@@ -30,6 +34,7 @@ public class RetrofitManager {
         //设置一下okHttp的参数
         OkHttpClient okHttpClient = new OkHttpClient.Builder()
                 .cookieJar(cookieJar)
+                .addInterceptor(new UserAgentInterceptor())
                 .build();
         //创建Retrofit
         mRetrofit = new Retrofit.Builder()
@@ -38,7 +43,7 @@ public class RetrofitManager {
                 .build();
     }
 
-    public Retrofit getRetrofit(){
+    public Retrofit getRetrofit() {
         return mRetrofit;
     }
 
